@@ -2,7 +2,7 @@
 
 
 #include "ShooterCharacter.h"
-#include "ShooterWeapon.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/Weapons/ShooterWeapon.h"
 #include "EnhancedInputComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RFMCaptureTheFlagCharacter.h"
-#include "ShooterWeaponHolder.h"
+#include "FirstPersonShooterTemplate/RFMCaptureTheFlagCharacter.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/Weapons/ShooterWeaponHolder.h"
 #include "ShooterNPC.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPawnDeathDelegate);

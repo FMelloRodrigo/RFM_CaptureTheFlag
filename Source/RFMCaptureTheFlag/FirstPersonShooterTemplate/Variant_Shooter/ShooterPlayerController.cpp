@@ -1,14 +1,14 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "Variant_Shooter/ShooterPlayerController.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/ShooterPlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "InputMappingContext.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerStart.h"
 #include "ShooterCharacter.h"
-#include "ShooterBulletCounterUI.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/UI/ShooterBulletCounterUI.h"
 #include "RFMCaptureTheFlag.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 

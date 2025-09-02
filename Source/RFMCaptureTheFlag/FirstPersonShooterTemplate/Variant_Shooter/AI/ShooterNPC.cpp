@@ -1,13 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "Variant_Shooter/AI/ShooterNPC.h"
-#include "ShooterWeapon.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/AI/ShooterNPC.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/Weapons/ShooterWeapon.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine/World.h"
-#include "ShooterGameMode.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/ShooterGameMode.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RFMCaptureTheFlagCharacter.h"
-#include "ShooterWeaponHolder.h"
+#include "FirstPersonShooterTemplate/RFMCaptureTheFlagCharacter.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/Weapons/ShooterWeaponHolder.h"
 #include "ShooterCharacter.generated.h"
 
 class AShooterWeapon;

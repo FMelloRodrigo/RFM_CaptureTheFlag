@@ -1,8 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "Variant_Shooter/ShooterGameMode.h"
-#include "ShooterUI.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/ShooterGameMode.h"
+#include "FirstPersonShooterTemplate/Variant_Shooter/UI/ShooterUI.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 
