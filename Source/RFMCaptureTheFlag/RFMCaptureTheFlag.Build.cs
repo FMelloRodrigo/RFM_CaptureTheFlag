@@ -27,8 +27,6 @@ public class RFMCaptureTheFlag : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"RFMCaptureTheFlag",
-			"RFMCaptureTheFlag/Variant_Horror",
-			"RFMCaptureTheFlag/Variant_Horror/UI",
 			"RFMCaptureTheFlag/Variant_Shooter",
 			"RFMCaptureTheFlag/Variant_Shooter/AI",
 			"RFMCaptureTheFlag/Variant_Shooter/UI",
