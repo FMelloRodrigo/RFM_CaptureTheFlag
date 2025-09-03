@@ -88,25 +88,15 @@ void ACTF_WeaponsBase::ToggleFireMode()
 
 void ACTF_WeaponsBase::Fire()
 {
-	if (CurrentAmmo > 0 && HasAuthority()) // Only check and decrement ammo on the server
+	if (HasAuthority())
 	{
-		Server_Fire();
-		CurrentAmmo--;
-		OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmo); // Broadcast for server player
-
-		if (CurrentAmmo == 0)
-		{
-			StopFire();
-			StartAmmoRegen();
-		}
-	}
-	else if (CurrentAmmo > 0 && !HasAuthority()) // Client predicts firing
-	{
-		Server_Fire();
+		// Server-controlled (AI or listen server host)
+		HandleFireOnServer();
 	}
 	else
 	{
-		StopFire();
+		// Client asks the server to fire
+		Server_Fire();
 	}
 }
 
@@ -117,22 +107,13 @@ bool ACTF_WeaponsBase::Server_Fire_Validate()
 
 void ACTF_WeaponsBase::Server_Fire_Implementation()
 {
-	if (ProjectileClass)
-	{
-		const FVector MuzzleLocation = WeaponMesh->GetSocketLocation("Muzzle");
-		const FRotator MuzzleRotation = WeaponMesh->GetSocketRotation("Muzzle");
-
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = GetOwner();
-		SpawnParams.Instigator = Cast<APawn>(GetOwner());
-
-		GetWorld()->SpawnActor<ACTF_ProjectileBase>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
-	}
+	HandleFireOnServer();
 }
 
 void ACTF_WeaponsBase::StartAmmoRegen()
 {
-	GetWorldTimerManager().SetTimer(TimerHandle_AmmoRegen, this, &ACTF_WeaponsBase::RegenerateAmmo, 2.0f, false);
+	RegenerateAmmo();
+	//GetWorldTimerManager().SetTimer(TimerHandle_AmmoRegen, this, &ACTF_WeaponsBase::RegenerateAmmo, 2.0f, false);
 }
 
 void ACTF_WeaponsBase::RegenerateAmmo()
@@ -142,6 +123,40 @@ void ACTF_WeaponsBase::RegenerateAmmo()
 		CurrentAmmo = MaxAmmo;
 		OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmo); // Broadcast for server player
 	}
+}
+// Rename this later
+void ACTF_WeaponsBase::HandleFireOnServer()
+{
+	if (CurrentAmmo > 0)
+	{
+		// Decrement on the server so it replicates
+		CurrentAmmo--;
+
+		// Optional but helps timeliness
+		ForceNetUpdate();
+
+		// Spawn projectile on the server
+		if (ProjectileClass)
+		{
+			const FVector MuzzleLocation = WeaponMesh->GetSocketLocation("Muzzle");
+			const FRotator MuzzleRotation = WeaponMesh->GetSocketRotation("Muzzle");
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = GetOwner();
+			SpawnParams.Instigator = Cast<APawn>(GetOwner());
+
+			GetWorld()->SpawnActor<ACTF_ProjectileBase>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+		}
+
+		// Local feedback for the server player (clients get OnRep)
+		OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmo);
+	}
+	else
+	{
+		StopFire();
+		StartAmmoRegen();
+	}
+
 }
 
 

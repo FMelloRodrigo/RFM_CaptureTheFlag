@@ -79,4 +79,7 @@ private:
 	void StartAmmoRegen();
 	void RegenerateAmmo();
 
+	void HandleFireOnServer(); 
+
+
 };
