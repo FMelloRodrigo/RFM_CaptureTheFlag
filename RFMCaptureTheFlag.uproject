@@ -33,10 +33,6 @@
 			"Enabled": true
 		},
 		{
-			"Name": "OnlineSubsystemSteam",
-			"Enabled": true
-		},
-		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
 		}

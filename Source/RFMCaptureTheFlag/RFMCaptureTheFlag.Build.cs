@@ -22,7 +22,6 @@ public class RFMCaptureTheFlag : ModuleRules
             "GameplayAbilities", 
 			"GameplayTags", 
 			"GameplayTasks",
-            "OnlineSubsystemSteam",
             "OnlineSubsystem"
         });
 
