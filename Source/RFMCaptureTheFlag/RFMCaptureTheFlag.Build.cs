@@ -19,7 +19,10 @@ public class RFMCaptureTheFlag : ModuleRules
 			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
-			"OnlineSubsystemSteam",
+            "GameplayAbilities", 
+			"GameplayTags", 
+			"GameplayTasks",
+            "OnlineSubsystemSteam",
             "OnlineSubsystem"
         });
 
