@@ -255,3 +255,17 @@ void ACTFCharacter::Server_EquipWeapon_Implementation(ACTF_WeaponsBase* WeaponTo
 }
 
 
+
+void ACTFCharacter::OnTeamsInit(ETeam InitTeam)
+{
+
+}
+
+void ACTFCharacter::OnTeamsChanged_Implementation(ETeam PlayerTeam)
+{
+	OnTeamsInit(PlayerTeam);
+}
+
+
+
+

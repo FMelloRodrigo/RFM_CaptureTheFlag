@@ -15,6 +15,7 @@ class RFMCAPTURETHEFLAG_API ACTF_PlayerController : public APlayerController
 	GENERATED_BODY()
 
 protected:
-	virtual void BeginPlay() override;
 	
+	virtual void BeginPlay() override;
+
 };

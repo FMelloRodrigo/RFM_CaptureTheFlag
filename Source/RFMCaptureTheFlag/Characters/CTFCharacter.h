@@ -8,6 +8,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
 #include "InputActionValue.h" 
+#include "GameModes/CTF/Interfaces/ICTF_Teams.h"
 #include "CTFCharacter.generated.h"
 
 class UAbilitySystemComponent;
@@ -23,7 +24,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedDelegate, ACTF_Weap
 
 
 UCLASS()
-class RFMCAPTURETHEFLAG_API ACTFCharacter : public ACharacter, public IAbilitySystemInterface
+class RFMCAPTURETHEFLAG_API ACTFCharacter : public ACharacter, public IAbilitySystemInterface, public IICTF_Teams
 {
 	GENERATED_BODY()
 
@@ -52,8 +53,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnWeaponEquippedDelegate OnWeaponEquipped;
 
+	// TEAMS
+	UFUNCTION(BlueprintCallable,Category = "Teams")
+	void OnTeamsInit(ETeam InitTeam);
+	
+	void OnTeamsChanged_Implementation(ETeam PlayerTeam) override;
+
 protected:
 	virtual void BeginPlay() override;
+
+	
 
 	// ENHANCED INPUT: Input Action handlers
 	void Move(const FInputActionValue& Value);
