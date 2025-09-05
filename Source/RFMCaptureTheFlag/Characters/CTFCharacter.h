@@ -9,6 +9,7 @@
 #include "GameplayAbilitySpec.h"
 #include "InputActionValue.h" 
 #include "GameModes/CTF/Interfaces/ICTF_Teams.h"
+#include "GameModes/CTF/States/CTF_PlayerState.h"
 #include "CTFCharacter.generated.h"
 
 class UAbilitySystemComponent;
@@ -59,15 +60,27 @@ public:
 	
 	void OnTeamsChanged_Implementation(ETeam PlayerTeam) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+	class USkeletalMeshComponent* FirstPersonMesh;
+
+
+	void UpdateCharacterTeamColor(ETeam NewTeam);
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* TeamMaterialInstance;
+
+	UPROPERTY()
+	UMaterialInstanceDynamic* TeamMaterialInstance2;
+
 protected:
 	virtual void BeginPlay() override;
-
 	
 
-	// ENHANCED INPUT: Input Action handlers
+	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	// We still use the original StartFire/StopFire functions, but they are called by new handlers
+
+	
 	void StartFire(const FInputActionValue& Value);
 	void StopFire(const FInputActionValue& Value);
 	void ToggleFireMode(const FInputActionValue& Value);
@@ -77,8 +90,7 @@ protected:
 	class UCameraComponent* FirstPersonCameraComponent;
 
 	// Components
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
-	class USkeletalMeshComponent* FirstPersonMesh;
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystemComponent;

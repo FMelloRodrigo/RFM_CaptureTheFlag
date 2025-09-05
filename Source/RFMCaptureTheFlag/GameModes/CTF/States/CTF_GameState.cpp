@@ -11,6 +11,7 @@ ACTF_GameState::ACTF_GameState()
 	// Initialize scores
 	RedTeamScore = 0;
 	BlueTeamScore = 0;
+	bReplicates = true;
 }
 
 void ACTF_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

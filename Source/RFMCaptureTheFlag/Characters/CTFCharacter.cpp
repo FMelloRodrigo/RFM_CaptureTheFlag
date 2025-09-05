@@ -11,6 +11,9 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/CTF_Attributes.h"
 #include "Actors/CTF_WeaponsBase.h"
+#include "GameModes/CTF/States/CTF_GameState.h"
+#include "Controllers/CTF_PlayerController.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Net/UnrealNetwork.h"
 
 #include "EnhancedInputComponent.h"
@@ -21,12 +24,15 @@ ACTFCharacter::ACTFCharacter()
 {
 
 	PrimaryActorTick.bCanEverTick = true;
+	bAlwaysRelevant = true;
+	bReplicates = true;
 
 	FirstPersonMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("First Person Mesh"));
 
 	FirstPersonMesh->SetupAttachment(GetMesh());
+	FirstPersonMesh->SetIsReplicated(true);
 	FirstPersonMesh->SetOnlyOwnerSee(true);
-	FirstPersonMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
+	//FirstPersonMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 	FirstPersonMesh->SetCollisionProfileName(FName("NoCollision"));
 
 
@@ -41,7 +47,8 @@ ACTFCharacter::ACTFCharacter()
 
 	// configure the character comps
 	GetMesh()->SetOwnerNoSee(true);
-	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
+	GetMesh()->SetIsReplicated(true);
+	//GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
 
 	GetCapsuleComponent()->SetCapsuleSize(34.0f, 96.0f);
 
@@ -89,6 +96,23 @@ void ACTFCharacter::BeginPlay()
 void ACTFCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	/*
+	if (TempPlayerState == nullptr)
+	{
+		TempPlayerState = GetPlayerState<ACTF_PlayerState>();
+		if (TempPlayerState)
+		{
+			
+			ACTF_PlayerController* PC = Cast<ACTF_PlayerController>(Controller);
+			if (PC)
+			{
+				PC->UpdateCharacterTeamColor(TempPlayerState->GetTeam());
+			}
+			
+			
+		}
+	}
+	*/
 }
 
 void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -256,9 +280,10 @@ void ACTFCharacter::Server_EquipWeapon_Implementation(ACTF_WeaponsBase* WeaponTo
 
 
 
+
+
 void ACTFCharacter::OnTeamsInit(ETeam InitTeam)
 {
-
 }
 
 void ACTFCharacter::OnTeamsChanged_Implementation(ETeam PlayerTeam)
@@ -267,5 +292,85 @@ void ACTFCharacter::OnTeamsChanged_Implementation(ETeam PlayerTeam)
 }
 
 
+void ACTFCharacter::UpdateCharacterTeamColor(ETeam NewTeam)
+{
+	
+			if (!TeamMaterialInstance)
+			{
+				TeamMaterialInstance = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+				GetMesh()->SetMaterial(0, TeamMaterialInstance);
+				FirstPersonMesh->SetMaterial(0, TeamMaterialInstance);
+			}
+			if (!TeamMaterialInstance2)
+			{
+				TeamMaterialInstance2 = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(1), this);
+				GetMesh()->SetMaterial(1, TeamMaterialInstance2);
+				FirstPersonMesh->SetMaterial(1, TeamMaterialInstance2);
+			}
+
+			FLinearColor TeamColor;
+			switch (NewTeam)
+			{
+			case ETeam::RedTeam:
+				TeamColor = FLinearColor::Red;
+				break;
+			case ETeam::BlueTeam:
+				TeamColor = FLinearColor::Blue;
+				break;
+			default:
+				TeamColor = FLinearColor::White;
+				break;
+			}
+
+			if (TeamMaterialInstance)
+			{
+				TeamMaterialInstance->SetVectorParameterValue(FName("Paint Tint"), TeamColor);
+				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
+			}
+
+			if (TeamMaterialInstance2)
+			{
+				TeamMaterialInstance2->SetVectorParameterValue(FName("Paint Tint"), TeamColor);
+				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
+			}
+}
 
 
+	
+
+/*
+if (BaseTeamMaterial)
+		{
+			if (!TeamMaterialInstance)
+			{
+				TeamMaterialInstance = UMaterialInstanceDynamic::Create(BaseTeamMaterial, this);
+				GetMesh()->SetMaterial(0, TeamMaterialInstance);
+				FirstPersonMesh->SetMaterial(0, TeamMaterialInstance);
+			}
+
+			FLinearColor TeamColor;
+			switch (NewTeam)
+			{
+			case ETeam::RedTeam:
+				TeamColor = FLinearColor::Red;
+				break;
+			case ETeam::BlueTeam:
+				TeamColor = FLinearColor::Blue;
+				break;
+			default:
+				TeamColor = FLinearColor::White;
+				break;
+			}
+
+			if (TeamMaterialInstance)
+			{
+				TeamMaterialInstance->SetVectorParameterValue(FName("Paint Tint"), TeamColor);
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
+			}
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("UpdateCharacterTeamColor: Invalid Mesh or BaseTeamMaterial")));
+		}
+
+*/

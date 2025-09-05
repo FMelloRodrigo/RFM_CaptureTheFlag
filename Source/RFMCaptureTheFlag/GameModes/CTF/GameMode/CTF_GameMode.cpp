@@ -22,38 +22,6 @@ void ACTF_GameMode::PostLogin(APlayerController* NewPlayer)
 {
 	
 	Super::PostLogin(NewPlayer);
-	/*
-	ACTF_GameState* CtfGameState = GetGameState<ACTF_GameState>();
-	ACTF_PlayerState* CtfPlayerState = NewPlayer->GetPlayerState<ACTF_PlayerState>();
-	
-	if (CtfGameState && CtfPlayerState)
-	{
-		// Determine which team has fewer players
-		if (CtfGameState->RedTeamPlayers.Num() <= CtfGameState->BlueTeamPlayers.Num())
-		{
-			// Assign to Red Team (first player goes here too)
-			CtfPlayerState->SetTeam(ETeam::RedTeam);
-			CtfGameState->AddPlayerToTeam(CtfPlayerState, ETeam::RedTeam);
-		}
-		else
-		{
-			// Assign to Blue Team
-			CtfPlayerState->SetTeam(ETeam::BlueTeam);
-			CtfGameState->AddPlayerToTeam(CtfPlayerState, ETeam::BlueTeam);
-		}
-
-
-		UE_LOG(LogTemp, Warning, TEXT("Player %s assigned to a team."), *CtfPlayerState->GetPlayerName());
-
-		//StartMatch();
-
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to get CTFGameState or CTFPlayerState in PostLogin."));
-		GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("Failed to get CTFGameState or CTFPlayerState in PostLogin.")));
-	}
-	*/
 }
 
 void ACTF_GameMode::Logout(AController* Exiting)
@@ -96,41 +64,46 @@ AActor* ACTF_GameMode::ChoosePlayerStart_Implementation(AController* Player)
 	// Get all CTF_PlayerStart actors
 	TArray<AActor*> PlayerStarts;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACTF_PlayerStart::StaticClass(), PlayerStarts);
-	
-	if (CtfGameState->RedTeamPlayers.Num() <= CtfGameState->BlueTeamPlayers.Num())
-	{
-		// Assign to Red Team (first player goes here too)
-		CtfPlayerState->SetTeam(ETeam::RedTeam);
-		CtfGameState->AddPlayerToTeam(CtfPlayerState, ETeam::RedTeam);
-		for (AActor* StartActor : PlayerStarts)
-		{
-			ACTF_PlayerStart* PlayerStart = Cast<ACTF_PlayerStart>(StartActor);
 
-			if (PlayerStart && PlayerStart->Team == ETeam::RedTeam)
+	if (CtfPlayerState->GetTeam() == ETeam::None)
+	{
+
+
+		if (CtfGameState->RedTeamPlayers.Num() <= CtfGameState->BlueTeamPlayers.Num())
+		{
+			// Assign to Red Team (first player goes here too)
+			CtfPlayerState->SetTeam(ETeam::RedTeam);
+			CtfGameState->AddPlayerToTeam(CtfPlayerState, ETeam::RedTeam);
+			for (AActor* StartActor : PlayerStarts)
 			{
-				//UE_LOG(LogTemp, Log, TEXT("Found a valid spawn point for team: %s"), (CtfPlayerState->GetTeam() == ETeam::RedTeam) ? TEXT("Red Team") : TEXT("Blue Team"));
-				GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("ASSINED TO RED TEAM")));
-				return PlayerStart;
+				ACTF_PlayerStart* PlayerStart = Cast<ACTF_PlayerStart>(StartActor);
+
+				if (PlayerStart && PlayerStart->Team == ETeam::RedTeam)
+				{
+					//UE_LOG(LogTemp, Log, TEXT("Found a valid spawn point for team: %s"), (CtfPlayerState->GetTeam() == ETeam::RedTeam) ? TEXT("Red Team") : TEXT("Blue Team"));
+					GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("ASSINED TO RED TEAM")));
+					return PlayerStart;
+				}
 			}
+
 		}
-
-	}
-	else
-	{
-		// Assign to Blue Team
-		CtfPlayerState->SetTeam(ETeam::BlueTeam);
-		CtfGameState->AddPlayerToTeam(CtfPlayerState, ETeam::BlueTeam);
-
-		for (AActor* StartActor : PlayerStarts)
+		else
 		{
-			ACTF_PlayerStart* PlayerStart = Cast<ACTF_PlayerStart>(StartActor);
+			// Assign to Blue Team
+			CtfPlayerState->SetTeam(ETeam::BlueTeam);
+			CtfGameState->AddPlayerToTeam(CtfPlayerState, ETeam::BlueTeam);
 
-			if (PlayerStart && PlayerStart->Team == ETeam::BlueTeam)
+			for (AActor* StartActor : PlayerStarts)
 			{
-				//UE_LOG(LogTemp, Log, TEXT("Found a valid spawn point for team: %s"), (CtfPlayerState->GetTeam() == ETeam::RedTeam) ? TEXT("Red Team") : TEXT("Blue Team"));
-				//GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("Current State: %s"), *UEnum::GetValueAsString(CtfPlayerState->GetTeam())));
-				GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("ASSINED TO BLUE TEAM")));
-				return PlayerStart;
+				ACTF_PlayerStart* PlayerStart = Cast<ACTF_PlayerStart>(StartActor);
+
+				if (PlayerStart && PlayerStart->Team == ETeam::BlueTeam)
+				{
+					//UE_LOG(LogTemp, Log, TEXT("Found a valid spawn point for team: %s"), (CtfPlayerState->GetTeam() == ETeam::RedTeam) ? TEXT("Red Team") : TEXT("Blue Team"));
+					//GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("Current State: %s"), *UEnum::GetValueAsString(CtfPlayerState->GetTeam())));
+					GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("ASSINED TO BLUE TEAM")));
+					return PlayerStart;
+				}
 			}
 		}
 	}
