@@ -11,9 +11,21 @@ ACTF_WeaponsBase::ACTF_WeaponsBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+	RootComponent = SceneComp;
 
-	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	RootComponent = WeaponMesh;
+	FPWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FPWeaponMesh"));
+	TPWeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("TPWeaponMesh"));
+	
+	FPWeaponMesh->SetupAttachment(SceneComp);
+	FPWeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
+	FPWeaponMesh->SetIsReplicated(true);
+
+	TPWeaponMesh->SetupAttachment(SceneComp);
+	TPWeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
+	TPWeaponMesh->SetIsReplicated(true);
+
+	FPWeaponMesh->bOnlyOwnerSee = true;
 
 	FireRate = 600.f;
 	MaxAmmo = 30;
@@ -138,8 +150,8 @@ void ACTF_WeaponsBase::HandleFireOnServer()
 		// Spawn projectile on the server
 		if (ProjectileClass)
 		{
-			const FVector MuzzleLocation = WeaponMesh->GetSocketLocation("Muzzle");
-			const FRotator MuzzleRotation = WeaponMesh->GetSocketRotation("Muzzle");
+			const FVector MuzzleLocation = TPWeaponMesh->GetSocketLocation("Muzzle");
+			const FRotator MuzzleRotation = TPWeaponMesh->GetSocketRotation("Muzzle");
 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = GetOwner();

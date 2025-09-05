@@ -32,7 +32,8 @@ ACTFCharacter::ACTFCharacter()
 	FirstPersonMesh->SetupAttachment(GetMesh());
 	FirstPersonMesh->SetIsReplicated(true);
 	FirstPersonMesh->SetOnlyOwnerSee(true);
-	//FirstPersonMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
+	FirstPersonMesh->SetOwnerNoSee(false);
+	FirstPersonMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 	FirstPersonMesh->SetCollisionProfileName(FName("NoCollision"));
 
 
@@ -46,9 +47,10 @@ ACTFCharacter::ACTFCharacter()
 	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
 
 	// configure the character comps
-	GetMesh()->SetOwnerNoSee(true);
+	GetMesh()->SetOwnerNoSee(false);
+	GetMesh()->SetOnlyOwnerSee(false);
 	GetMesh()->SetIsReplicated(true);
-	//GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
+	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
 
 	GetCapsuleComponent()->SetCapsuleSize(34.0f, 96.0f);
 
@@ -242,7 +244,10 @@ void ACTFCharacter::EquipWeapon(ACTF_WeaponsBase* WeaponToEquip)
 		if (EquippedWeapon)
 		{
 			EquippedWeapon->SetOwner(this);
-			EquippedWeapon->AttachToComponent(FirstPersonMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("GripPoint"));
+			EquippedWeapon->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+			EquippedWeapon->FPWeaponMesh->AttachToComponent(FirstPersonMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("GripPoint"));
+			EquippedWeapon->TPWeaponMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("GripPoint"));
+			//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("GripPoint"));
 		}
 	}
 	else

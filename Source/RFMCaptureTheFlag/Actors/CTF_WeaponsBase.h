@@ -41,11 +41,17 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnAmmoChangedDelegate OnAmmoChanged;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USkeletalMeshComponent* TPWeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	USkeletalMeshComponent* FPWeaponMesh;
+
 protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USkeletalMeshComponent* WeaponMesh;
+	USceneComponent* SceneComp;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
 	TSubclassOf<class ACTF_ProjectileBase> ProjectileClass;
