@@ -80,6 +80,13 @@ void ACTF_PlayerState::SendTeamChangeMessage()
     {
         ACTFCharacter* PossessedCharacter = Cast<ACTFCharacter>(GetPawn());
         PossessedCharacter->UpdateCharacterTeamColor(Team);
+
+        if (ACTF_PlayerController* PC = Cast<ACTF_PlayerController>(GetOwner()))
+        {
+            PC->CreateMatchHUD();
+            
+        }
+        //GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("UPDATE TEAM COLOR")));
     }
     else
 

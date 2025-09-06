@@ -2,7 +2,8 @@
 
 
 #include "CTF_GameState.h"
-#include "Net/UnrealNetwork.h"
+
+#include "Controllers/CTF_PlayerController.h"
 
 
 
@@ -12,7 +13,10 @@ ACTF_GameState::ACTF_GameState()
 	RedTeamScore = 0;
 	BlueTeamScore = 0;
 	bReplicates = true;
+	WinnerTeam = ETeam::None;
+	bMatchedHasEnded = false;
 }
+
 
 void ACTF_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -21,9 +25,26 @@ void ACTF_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	// Replicate team players arrays and scores
 	DOREPLIFETIME(ACTF_GameState, RedTeamPlayers);
 	DOREPLIFETIME(ACTF_GameState, BlueTeamPlayers);
-	DOREPLIFETIME(ACTF_GameState, RedTeamScore);
-	DOREPLIFETIME(ACTF_GameState, BlueTeamScore);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, RedTeamScore, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, BlueTeamScore, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, WinnerTeam, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, bMatchedHasEnded, COND_None, REPNOTIFY_Always);
 }
+
+void ACTF_GameState::OnRep_RedTeamScore()
+{
+	// This function is called on all clients when RedTeamScore is replicated.
+	OnTeamScored.Broadcast(RedTeamScore, BlueTeamScore, ETeam::RedTeam);
+}
+
+void ACTF_GameState::OnRep_BlueTeamScore()
+{
+	// This function is called on all clients when BlueTeamScore is replicated.
+	OnTeamScored.Broadcast(RedTeamScore, BlueTeamScore, ETeam::BlueTeam);
+}
+
+
 
 void ACTF_GameState::AddPlayerToTeam(ACTF_PlayerState* PlayerState, ETeam Team)
 {
@@ -35,10 +56,12 @@ void ACTF_GameState::AddPlayerToTeam(ACTF_PlayerState* PlayerState, ETeam Team)
 		if (Team == ETeam::RedTeam)
 		{
 			RedTeamPlayers.AddUnique(PlayerState);
+			
 		}
 		else if (Team == ETeam::BlueTeam)
 		{
 			BlueTeamPlayers.AddUnique(PlayerState);
+			
 		}
 	}
 	
@@ -56,4 +79,25 @@ void ACTF_GameState::AddScoreToTeam(ETeam Team, int32 ScoreToAdd)
 		BlueTeamScore += ScoreToAdd;
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("SCORED: %s"), *UEnum::GetValueAsString(Team)));
 	}
+	// For server players
+	OnTeamScored.Broadcast(RedTeamScore, BlueTeamScore, Team);
+}
+
+
+
+void ACTF_GameState::MatchEnded(ETeam Team)
+{
+	WinnerTeam = Team;
+	//For Server
+	OnMatchEnded.Broadcast(WinnerTeam);
+	bMatchedHasEnded = true;
+}
+void ACTF_GameState::OnRep_WinnerTeam()
+{
+	OnMatchEnded.Broadcast(WinnerTeam);
+}
+
+void ACTF_GameState::OnRep_MatchedHasEnded()
+{
+	OnMatchEnded.Broadcast(WinnerTeam);
 }

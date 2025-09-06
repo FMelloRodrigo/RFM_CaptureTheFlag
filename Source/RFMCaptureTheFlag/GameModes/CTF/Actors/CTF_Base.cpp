@@ -36,36 +36,35 @@ void ACTF_Base::BeginPlay()
 
 void ACTF_Base::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
-	// Check if the other actor is a player pawn
-	APawn* PlayerPawn = Cast<APawn>(OtherActor);
-	ACTF_GameMode* CtfGameMode = Cast<ACTF_GameMode>(GetWorld()->GetAuthGameMode());
+		// Check if the other actor is a player pawn
+		APawn* PlayerPawn = Cast<APawn>(OtherActor);
+		ACTF_GameMode* CtfGameMode = Cast<ACTF_GameMode>(GetWorld()->GetAuthGameMode());
 
-	if (PlayerPawn)
-	{
-		const ACTF_PlayerState* PlayerState = PlayerPawn->GetPlayerState<ACTF_PlayerState>();
-		const APlayerController* PC = Cast<APlayerController>(PlayerPawn->GetController());
-		
-		
-		if (PlayerState && PC && CtfGameMode )
+		if (PlayerPawn)
 		{
-			if (PlayerState->GetTeam() == Team)
+			const ACTF_PlayerState* PlayerState = PlayerPawn->GetPlayerState<ACTF_PlayerState>();
+			const APlayerController* PC = Cast<APlayerController>(PlayerPawn->GetController());
+
+
+			if (PlayerState && PC && CtfGameMode)
 			{
-				// Check if the player is carrying the flag	
-				if (CtfGameMode->GetFlagPlayer() && CtfGameMode->GetFlagPlayer() == PC)
+				if (PlayerState->GetTeam() == Team)
 				{
-					// Get the Game Mode and call the score function
-					ACTF_GameMode* GameMode = Cast<ACTF_GameMode>(UGameplayStatics::GetGameMode(this));
-					if (GameMode)
+					// Check if the player is carrying the flag	
+					if (CtfGameMode->GetFlagPlayer() && CtfGameMode->GetFlagPlayer() == PC)
 					{
-						GameMode->OnScore(PlayerPawn->GetController<APlayerController>());
+						// Get the Game Mode and call the score function
+						ACTF_GameMode* GameMode = Cast<ACTF_GameMode>(UGameplayStatics::GetGameMode(this));
+						if (GameMode)
+						{
+							GameMode->OnScore(PlayerPawn->GetController<APlayerController>());
+						}
 					}
 				}
+
 			}
-			
+
 		}
-		
-	}
 }
 
 

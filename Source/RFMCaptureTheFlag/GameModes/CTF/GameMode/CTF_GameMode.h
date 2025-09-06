@@ -10,6 +10,10 @@
 #include "Net/UnrealNetwork.h"
 #include "CTF_GameMode.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchEnded, ETeam, WinnerTeam);
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMatchStarted);
+
 class ACTF_Flag;
 
 
@@ -50,6 +54,12 @@ public:
 
 	bool IsPlayerRespawning(AController* PC);
 
+	UPROPERTY(BlueprintAssignable, Category = "CTF")
+	FOnMatchEnded OnMatchEnded;
+
+	UPROPERTY(BlueprintAssignable, Category = "CTF")
+	FOnMatchStarted OnMatchStarted;
+
 
 protected:
 	// The flag actor in the world
@@ -75,15 +85,20 @@ protected:
 	void ResetFlag();
 
 	// Resets the game state
-	void ResetGame();
+	void ResetThisGame();
 
 	virtual void HandleMatchHasStarted() override;
 
 	APlayerController* FlagPlayer;
+	
+	UFUNCTION(NetMulticast, Reliable)
+	void DisablePlayerInput();
 
 private:
 
 	TArray<AController*> RespawningPlayers;
+
+	void CheckWinCondition();
 
 	//void FindPlayerStartWithTeam(APawn* PlayerPawn);
 	

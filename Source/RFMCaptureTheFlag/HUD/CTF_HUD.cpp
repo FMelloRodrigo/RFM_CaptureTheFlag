@@ -50,3 +50,25 @@ void ACTF_HUD::RemovePlayerHUD()
 		PlayerHUDWidget = nullptr;
 	}
 }
+
+void ACTF_HUD::CreateMatchHUD()
+{
+	if (MatchHUDWidget)
+	{
+		return;
+	}
+
+	if (MatchHUDWidgetClass)
+	{
+		APlayerController* PC = GetOwningPlayerController();
+		if (PC)
+		{
+			MatchHUDWidget = CreateWidget<UUserWidget>(PC, MatchHUDWidgetClass);
+			if (MatchHUDWidget)
+			{
+				MatchHUDWidget->AddToViewport();
+			}
+		}
+	}
+
+}

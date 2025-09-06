@@ -5,6 +5,7 @@
 
 #include "GameModes/CTF/States/CTF_GameState.h"
 #include "GameModes/CTF/Actors/CTF_PlayerStart.h"
+#include "Controllers/CTF_PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 #include "GameModes/CTF/Actors/CTF_Flag.h"
@@ -140,33 +141,6 @@ void ACTF_GameMode::HandleMatchHasStarted()
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("Current State")));
 	Super::HandleMatchHasStarted();
-/*
-	ACTF_GameState* CtfGameState = Cast<ACTF_GameState>(UGameplayStatics::GetGameState(this));
-	if (CtfGameState)
-	{
-
-		for (auto LocalPState : CtfGameState->PlayerArray)
-		{
-			ACTF_PlayerState* LoopPState = Cast<ACTF_PlayerState>(LocalPState);
-
-			if (LoopPState && LoopPState->GetTeam() == ETeam::None)
-			{
-				if (CtfGameState->RedTeamPlayers.Num() <= CtfGameState->BlueTeamPlayers.Num())
-				{
-					LoopPState->SetTeam(ETeam::RedTeam);
-					CtfGameState->AddPlayerToTeam(LoopPState, ETeam::RedTeam);
-				}
-				else
-				{
-					LoopPState->SetTeam(ETeam::BlueTeam);
-					CtfGameState->AddPlayerToTeam(LoopPState, ETeam::BlueTeam);
-				}
-			}
-		}	
-	}
-	*/
-
-	// Spawn the flag at the beginning of the game
 	FindInitialFlag();
 }
 
@@ -221,11 +195,7 @@ void ACTF_GameMode::OnScore(APlayerController* Scorer)
 			PGameState->AddScoreToTeam(ScorerPS->GetTeam(), 1);
 			OnFlagDropped();
 			ResetFlag();
-
-			if (PGameState->RedTeamScore >= 3 || PGameState->BlueTeamScore >= 3)
-			{
-				ResetGame();
-			}
+			CheckWinCondition();		
 		}
 	}
 }
@@ -244,28 +214,11 @@ void ACTF_GameMode::ResetFlag_Implementation()
 	}
 }
 
-void ACTF_GameMode::ResetGame()
+void ACTF_GameMode::ResetThisGame()
 {
 	// Reset scores to 0
-	ACTF_GameState* PGameState = GetGameState<ACTF_GameState>();
-	if (PGameState)
-	{
-		PGameState->RedTeamScore = 0;
-		PGameState->BlueTeamScore = 0;
-	}
-
-	// Respawn all players and reset flag
-	TArray<AActor*> PlayerControllers;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerController::StaticClass(), PlayerControllers);
-
-	for (AActor* ControllerActor : PlayerControllers)
-	{
-		if (APlayerController* PlayerController = Cast<APlayerController>(ControllerActor))
-		{
-			RestartPlayer(PlayerController);
-		}
-	}
-	ResetFlag();
+	// ResetFlag();
+	RestartGame();
 }
 /*
 void ACTF_GameMode::PlayerKilled(AController* Killer, AController* Victim)
@@ -351,7 +304,69 @@ bool ACTF_GameMode::IsPlayerRespawning(AController* PC)
 
 void ACTF_GameMode::OnRep_FlagActor()
 {
+	//Flag actor needs to be replicated in order to replicate the location changes
+	// Can be used for VFX on clients when the Flag Actor Changes
 }
+
+void ACTF_GameMode::CheckWinCondition()
+{
+	ACTF_GameState* PGameState = GetGameState<ACTF_GameState>();
+	ETeam WinnerTeam;
+	bool LMatchHasEnded = false;
+	if (PGameState)
+	{	
+		if (PGameState->RedTeamScore >= 3)
+		{	
+			//OnMatchEnded.Broadcast(ETeam::RedTeam);
+			WinnerTeam = ETeam::RedTeam;
+			LMatchHasEnded = true;
+		}
+		else if (PGameState->BlueTeamScore >= 3)
+		{
+			//OnMatchEnded.Broadcast(ETeam::BlueTeam);
+			WinnerTeam = ETeam::BlueTeam;
+			LMatchHasEnded = true;
+		}
+	}
+	if (LMatchHasEnded)
+	{
+		//
+		PGameState->MatchEnded(WinnerTeam);
+
+		//DisablePlayerInput();
+		//RestartGame();
+		
+		
+
+		FTimerHandle DisableInputTimerHandle;
+		GetWorldTimerManager().SetTimer(DisableInputTimerHandle, this, &ACTF_GameMode::DisablePlayerInput, 0.25f, false, 0.0f);
+
+		FTimerHandle RespawnTimerHandle;
+		GetWorldTimerManager().SetTimer(RespawnTimerHandle,this,&ACTF_GameMode::ResetThisGame,3.f,false,0.0f);
+		
+		//DisablePlayerInput();
+	}
+
+	
+	//ResetGame();
+}
+
+void ACTF_GameMode::DisablePlayerInput_Implementation()
+{
+	ACTF_GameState* PGameState = GetGameState<ACTF_GameState>();
+	for (APlayerState* LoopPS : PGameState->PlayerArray)
+	{
+		if (ACTF_PlayerController* PlayerController = Cast<ACTF_PlayerController>(LoopPS->GetOwner()))
+		{
+			PlayerController->DisablePlayerInput();
+			//PlayerController->UnPossess();
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("DISABLE INPUT")));
+			//RestartPlayer(PlayerController);
+		}
+	}
+}
+
+
 /*
 void ACTF_GameMode::FindPlayerStartWithTeam(APawn* PlayerPawn)
 {

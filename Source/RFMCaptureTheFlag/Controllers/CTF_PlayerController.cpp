@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TimerManager.h"
 #include "Net/UnrealNetwork.h"
+#include "GameModes/CTF/GameMode/CTF_GameMode.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 void ACTF_PlayerController::BeginPlay()
@@ -16,12 +17,13 @@ void ACTF_PlayerController::BeginPlay()
 
 	// We only want to create the HUD on the client that owns this controller.
 	// IsLocalController() is the perfect check for this.
+
+   
     
 }
-
 void ACTF_PlayerController::OnPossess(APawn* InPawn)
 {
-	Super::OnPossess(InPawn);
+	Super::OnPossess(InPawn); 
 	/*
 	ACTF_PlayerState* CtfPlayerState = Cast<ACTF_PlayerState>(InPawn->GetPlayerState());
 	GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Green, FString::Printf(TEXT("ON POSSES")));
@@ -117,6 +119,30 @@ void ACTF_PlayerController::CreatePlayerHUD()
             // Tell the HUD to create and display its widgets.
             CTFHUD->CreatePlayerHUD();
         } 
+}
+
+void ACTF_PlayerController::CreateMatchHUD()
+{
+    if (ACTF_HUD* CTFHUD = Cast<ACTF_HUD>(GetHUD()))
+    {
+        // Tell the HUD to create and display its widgets.
+        CTFHUD->CreateMatchHUD();
+        
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 20.f, FColor::Green, FString::Printf(TEXT("PLAYER HUD NOT VALID")));
+    }
+}
+
+void ACTF_PlayerController::DisablePlayerInput_Implementation()
+{
+    if (GetPawn())
+    {
+        GetPawn()->DisableInput(this);
+        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Input Disabled on Client"));
+    }
+
 }
 
 /*

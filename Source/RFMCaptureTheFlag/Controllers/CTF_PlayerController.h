@@ -27,6 +27,10 @@ public:
 	virtual void OnUnPossess() override;
 
 	void CreatePlayerHUD();
+	void CreateMatchHUD();
+
+	UFUNCTION(Client, Reliable)
+	void DisablePlayerInput();
 
 protected:
 	
