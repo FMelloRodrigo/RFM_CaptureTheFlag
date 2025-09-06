@@ -14,20 +14,26 @@ ACTF_ProjectileBase::ACTF_ProjectileBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
+	SetReplicateMovement(true);
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	RootComponent = SphereComponent;
 	SphereComponent->InitSphereRadius(5.0f);
 	SphereComponent->SetCollisionProfileName("Projectile");
 	SphereComponent->OnComponentHit.AddDynamic(this, &ACTF_ProjectileBase::OnHit);
-	RootComponent = SphereComponent;
+
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	MeshComponent->SetupAttachment(RootComponent);
+
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-	ProjectileMovementComponent->UpdatedComponent = SphereComponent;
 	ProjectileMovementComponent->InitialSpeed = ProjSpeed;
 	ProjectileMovementComponent->MaxSpeed = ProjSpeed;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->bShouldBounce = true;
+	ProjectileMovementComponent->bShouldBounce = false;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.f;
+
+	
 
 	InitialLifeSpan = 10.0f;
 
@@ -40,6 +46,7 @@ void ACTF_ProjectileBase::BeginPlay()
 
 void ACTF_ProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	
 	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && (OtherActor != GetOwner()))
 	{
 		IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OtherActor);
@@ -56,8 +63,7 @@ void ACTF_ProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 					TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 				}
 			}
-		}
-
+		}	
 		Destroy();
 	}
 }
@@ -66,5 +72,7 @@ void ACTF_ProjectileBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
+
+//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, OtherActor->GetActorNameOrLabel());
 
 

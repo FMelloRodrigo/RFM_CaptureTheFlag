@@ -22,6 +22,9 @@ protected:
 	class USphereComponent* SphereComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UStaticMeshComponent* MeshComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UProjectileMovementComponent* ProjectileMovementComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
