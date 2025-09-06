@@ -4,9 +4,7 @@
 #include "GameModes/CTF/GameMode/CTF_GameMode.h"
 
 #include "GameModes/CTF/States/CTF_GameState.h"
-#include "GameModes/CTF/States/CTF_PlayerState.h"
 #include "GameModes/CTF/Actors/CTF_PlayerStart.h"
-#include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 #include "GameModes/CTF/Actors/CTF_Flag.h"
@@ -24,6 +22,13 @@ void ACTF_GameMode::PostLogin(APlayerController* NewPlayer)
 {
 	
 	Super::PostLogin(NewPlayer);
+}
+
+void ACTF_GameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACTF_GameMode, FlagActor);
+
 }
 
 void ACTF_GameMode::Logout(AController* Exiting)
@@ -168,6 +173,7 @@ void ACTF_GameMode::HandleMatchHasStarted()
 void ACTF_GameMode::FindInitialFlag()
 {
 	FlagActor = Cast< ACTF_Flag> (UGameplayStatics::GetActorOfClass(GetWorld(), ACTF_Flag::StaticClass()));
+	InitalFlagTransform = FlagActor->GetActorTransform();
 }
 
 void ACTF_GameMode::OnFlagPickedUp(APawn* PlayerPawn, ACTF_Flag* Flag)
@@ -175,9 +181,31 @@ void ACTF_GameMode::OnFlagPickedUp(APawn* PlayerPawn, ACTF_Flag* Flag)
 	if (FlagActor && FlagActor == Flag)
 	{
 		// Hide the flag and attach it to the player
-		FlagActor->SetActorHiddenInGame(true);
-		FlagActor->SetOwner(PlayerPawn);
+		//FlagActor->SetActorHiddenInGame(true);
+		if (ACharacter* PCharacter = Cast<ACharacter>(PlayerPawn)) 
+		{
+			FlagActor->AttachToComponent(PCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("FlagSocket"));
+			FlagActor->SetOwner(PlayerPawn);
+			
+
+			FlagPlayer = Cast<APlayerController>(PlayerPawn->GetController());
+			if (FlagPlayer)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("FLAG PICKED")));
+			}
+		}
+		
+		
 	}
+}
+
+void ACTF_GameMode::OnFlagDropped()
+{
+	//TODO Do a trace to Adjust Flag position
+	FlagActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	FlagActor->OnFlagDropped();
+	FlagPlayer = nullptr;
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Flag Dropped")));
 }
 
 void ACTF_GameMode::OnScore(APlayerController* Scorer)
@@ -191,6 +219,7 @@ void ACTF_GameMode::OnScore(APlayerController* Scorer)
 		if (PGameState)
 		{
 			PGameState->AddScoreToTeam(ScorerPS->GetTeam(), 1);
+			OnFlagDropped();
 			ResetFlag();
 
 			if (PGameState->RedTeamScore >= 3 || PGameState->BlueTeamScore >= 3)
@@ -201,29 +230,17 @@ void ACTF_GameMode::OnScore(APlayerController* Scorer)
 	}
 }
 
-void ACTF_GameMode::ResetFlag()
+void ACTF_GameMode::ResetFlag_Implementation()
 {
 	// Reset the flag to the center of the map
 	if (FlagActor)
 	{
+		
 		FlagActor->SetActorHiddenInGame(false);
 		FlagActor->SetOwner(nullptr);
-
-		// Find all base actors to determine the center of the map
-		TArray<AActor*> Bases;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACTF_Base::StaticClass(), Bases);
-
-		FVector CenterOfMap = FVector::ZeroVector;
-		if (Bases.Num() > 0)
-		{
-			for (AActor* Base : Bases)
-			{
-				CenterOfMap += Base->GetActorLocation();
-			}
-			CenterOfMap /= Bases.Num();
-		}
-
-		FlagActor->SetActorLocation(CenterOfMap);
+		FlagActor->SetActorTransform(InitalFlagTransform);
+		FlagActor->EnableFlagCollision();
+		
 	}
 }
 
@@ -250,7 +267,7 @@ void ACTF_GameMode::ResetGame()
 	}
 	ResetFlag();
 }
-
+/*
 void ACTF_GameMode::PlayerKilled(AController* Killer, AController* Victim)
 {
 	if (Killer && Victim)
@@ -262,7 +279,7 @@ void ACTF_GameMode::PlayerKilled(AController* Killer, AController* Victim)
 		GetWorldTimerManager().SetTimer(RestartTimerHandle, RestartDelegate, 5.0f, false);
 	}
 }
-
+*/
 void ACTF_GameMode::RespawnPlayer(AController* CtfController)
 {
 	
@@ -274,9 +291,11 @@ void ACTF_GameMode::RespawnPlayer(AController* CtfController)
 		//RestartPlayer(CtfController);
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("DEAD RESPAWNING")));
 		APawn* OldPawn = CtfController->GetPawn();
-		
+
+		RespawningPlayers.Remove(CtfController);
 		CtfController->UnPossess();
 		OldPawn->Destroy();
+
 		
 		RestartPlayer(CtfController);
 		/*
@@ -293,6 +312,22 @@ void ACTF_GameMode::PlayerDied(AController* CtfController)
 	
 	if (CtfController )
 	{		
+		RespawningPlayers.AddUnique(CtfController);
+		
+		if (FlagPlayer)
+		{
+			APawn* LocalPawn = CtfController->GetPawn();
+			APlayerController* PC = Cast<APlayerController>(LocalPawn->GetController());
+
+			if (LocalPawn && PC && PC == FlagPlayer)
+			{
+				OnFlagDropped();
+				FlagActor->EnableFlagCollision();
+			}
+			
+		}
+			
+		
 		FTimerHandle RespawnTimerHandle;
 		float RespawnDelay = 1.0f;
 		FTimerDelegate TimerDel;
@@ -302,6 +337,22 @@ void ACTF_GameMode::PlayerDied(AController* CtfController)
 	
 }
 
+APlayerController* ACTF_GameMode::GetFlagPlayer()
+{
+	return FlagPlayer;
+}
+
+bool ACTF_GameMode::IsPlayerRespawning(AController* PC)
+{
+	if (!PC) return false;
+	
+	return RespawningPlayers.Contains(PC);
+}
+
+void ACTF_GameMode::OnRep_FlagActor()
+{
+}
+/*
 void ACTF_GameMode::FindPlayerStartWithTeam(APawn* PlayerPawn)
 {
 	if (ACTF_PlayerState* PState = PlayerPawn->GetPlayerState<ACTF_PlayerState>())
@@ -324,3 +375,4 @@ void ACTF_GameMode::FindPlayerStartWithTeam(APawn* PlayerPawn)
 
 	}
 }
+*/

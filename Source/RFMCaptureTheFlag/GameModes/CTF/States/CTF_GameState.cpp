@@ -49,9 +49,11 @@ void ACTF_GameState::AddScoreToTeam(ETeam Team, int32 ScoreToAdd)
 	if (Team == ETeam::RedTeam)
 	{
 		RedTeamScore += ScoreToAdd;
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("SCORED: %s"), *UEnum::GetValueAsString(Team)));
 	}
 	else if (Team == ETeam::BlueTeam)
 	{
 		BlueTeamScore += ScoreToAdd;
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("SCORED: %s"), *UEnum::GetValueAsString(Team)));
 	}
 }

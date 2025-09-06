@@ -15,6 +15,9 @@ ACTF_Flag::ACTF_Flag()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
+	bAlwaysRelevant = true;
+	SetReplicateMovement(true);
 
 	// Create and set up the collision component
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
@@ -27,7 +30,7 @@ ACTF_Flag::ACTF_Flag()
 	FlagMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	bIsHeld = false;
-	SetReplicates(true);
+	
 }
 
 // Called when the game starts or when spawned
@@ -54,6 +57,8 @@ void ACTF_Flag::OnFlagDropped()
 	}
 }
 
+
+
 void ACTF_Flag::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// Check if the other actor is a player pawn
@@ -65,10 +70,11 @@ void ACTF_Flag::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Othe
 		{
 			// Get the Game Mode and call the flag pickup function
 			ACTF_GameMode* GameMode = Cast<ACTF_GameMode>(UGameplayStatics::GetGameMode(this));
-			if (GameMode)
+			if (GameMode && !GameMode->IsPlayerRespawning(PlayerPawn->GetController()))
 			{
+				
 				GameMode->OnFlagPickedUp(PlayerPawn, this);
-				bIsHeld = true;
+				FlagPickedEvents();
 			}
 		}
 	}
@@ -79,6 +85,17 @@ void ACTF_Flag::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ACTF_Flag, bIsHeld);
+}
+
+void ACTF_Flag::FlagPickedEvents()
+{
+	bIsHeld = true;
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ACTF_Flag::EnableFlagCollision()
+{
+	CollisionComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
 

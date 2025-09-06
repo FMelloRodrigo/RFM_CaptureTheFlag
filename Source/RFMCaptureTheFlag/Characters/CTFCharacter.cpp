@@ -434,7 +434,7 @@ void ACTFCharacter::CreatePlayerHUD_Implementation()
 		if (ACTF_PlayerController* PC = Cast<ACTF_PlayerController>(GetController()))
 		{
 			PC->CreatePlayerHUD();
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HUD")));
+			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HUD")));
 		}
 		else
 		{

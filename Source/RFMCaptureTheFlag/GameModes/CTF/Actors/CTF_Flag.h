@@ -36,8 +36,10 @@ protected:
 
 public:
 	// Public function to drop the flag at the current location
-	UFUNCTION(BlueprintCallable, Category = "CTF")
+	UFUNCTION()
 	void OnFlagDropped();
+	UFUNCTION()
+	void EnableFlagCollision();
 
 private:
 	// A boolean to track if the flag is currently held by a player
@@ -45,5 +47,7 @@ private:
 	bool bIsHeld;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void FlagPickedEvents();
 
 };
