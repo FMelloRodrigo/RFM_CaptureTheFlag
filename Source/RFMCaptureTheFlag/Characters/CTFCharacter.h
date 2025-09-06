@@ -37,6 +37,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void UnPossessed() override;
 
 	// Implement IAbilitySystemInterface
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -63,6 +64,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
 	class USkeletalMeshComponent* FirstPersonMesh;
 
+	UFUNCTION(Client, Reliable)
+	void CreatePlayerHUD();
+
 
 	void UpdateCharacterTeamColor(ETeam NewTeam);
 
@@ -85,10 +89,40 @@ protected:
 	void StopFire(const FInputActionValue& Value);
 	void ToggleFireMode(const FInputActionValue& Value);
 
+
+	virtual void OnRep_PlayerState() override;
+
 	// Components
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
 	class UCameraComponent* FirstPersonCameraComponent;
 
+
+# pragma region Death Events
+	
+	UFUNCTION()
+	void Die();
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_OnDeath();
+
+
+	UPROPERTY(ReplicatedUsing = OnRep_IsDead)
+	bool bIsDead = false;
+
+
+	UFUNCTION()
+	void OnRep_IsDead();
+
+
+	virtual void PawnClientRestart() override;
+
+	
+
+# pragma endregion Death Events
+
+	
+	
 	// Components
 
 

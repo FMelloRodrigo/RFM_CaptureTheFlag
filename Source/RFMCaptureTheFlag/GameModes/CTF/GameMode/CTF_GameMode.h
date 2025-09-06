@@ -27,7 +27,7 @@ public:
 
 	// virtual bool ReadyToStartMatch_Implementation() override;
 
-
+	void PlayerDied(AController* CtfController);
 
 	// Called when a player picks up the flag
 	UFUNCTION(BlueprintCallable, Category = "CTF")
@@ -47,7 +47,8 @@ protected:
 
 	void PlayerKilled(AController* Killer, AController* Victim);
 
-
+	UFUNCTION()
+	void RespawnPlayer(AController* CtfController);
 
 	// Resets the flag to its original location
 	void ResetFlag();
@@ -57,6 +58,9 @@ protected:
 
 	virtual void HandleMatchHasStarted() override;
 
+private:
+
+	void FindPlayerStartWithTeam(APawn* PlayerPawn);
 	
 	
 };

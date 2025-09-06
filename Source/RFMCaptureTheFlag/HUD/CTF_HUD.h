@@ -18,6 +18,7 @@ class RFMCAPTURETHEFLAG_API ACTF_HUD : public AHUD
 
 public:
 	void CreatePlayerHUD();
+	void RemovePlayerHUD();
 
 
 private:

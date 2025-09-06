@@ -13,8 +13,13 @@
 	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
+
+
+
 // Delegate to broadcast health changes
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangedDelegate, float, Health, float, MaxHealth);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterDeathDelegate);
+
 
 UCLASS()
 class RFMCAPTURETHEFLAG_API UCTF_Attributes : public UAttributeSet
@@ -28,7 +33,7 @@ public:
 
 	// Override to clamp values and broadcast events
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
-
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UCTF_Attributes, Health);
@@ -40,6 +45,9 @@ public:
 	// Delegate that will be broadcasted when health changes
 	UPROPERTY(BlueprintAssignable, Category = "Attributes")
 	FOnHealthChangedDelegate OnHealthChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Attributes")
+	FOnCharacterDeathDelegate OnCharacterDeath;
 
 protected:
 	UFUNCTION()

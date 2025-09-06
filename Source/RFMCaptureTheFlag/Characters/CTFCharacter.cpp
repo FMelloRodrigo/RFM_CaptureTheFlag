@@ -9,12 +9,15 @@
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "GAS/Attributes/CTF_Attributes.h"
 #include "Actors/CTF_WeaponsBase.h"
 #include "GameModes/CTF/States/CTF_GameState.h"
 #include "Controllers/CTF_PlayerController.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Net/UnrealNetwork.h"
+
+#include "GameModes/CTF/GameMode/CTF_GameMode.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -93,28 +96,142 @@ void ACTFCharacter::BeginPlay()
 			}
 		}
 	}
+	if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
+	{
+		UCTF_Attributes* Attributes = const_cast<UCTF_Attributes*>(LHealthAtributeSet);
+		Attributes->OnCharacterDeath.AddDynamic(this, &ACTFCharacter::Die);
+		
+	}
+	
+	
 }
+
+
+
+
+# pragma region Death Events
+
+void ACTFCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// On the client, initialize the ASC from the replicated PlayerState
+	
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
+	
+
+}
+
+
+void ACTFCharacter::Die()
+{
+	
+	if (bIsDead)
+	{
+		return;
+	}
+	// The server handles the core logic of death
+	if (HasAuthority())
+	{
+		bIsDead = true;
+		Server_OnDeath();
+	}
+}
+// TODO REMNOVE THIS, NOT GOOD THE PLAYER NEED REF TO GAME MODE
+void ACTFCharacter::Server_OnDeath_Implementation()
+{
+	// Get a reference to the game mode
+	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
+	{
+		// Cast the game mode to your custom CTF game mode
+		if (ACTF_GameMode* CtfGameMode = Cast<ACTF_GameMode>(GameMode))
+		{
+			// Notify the game mode that this player has died
+			CtfGameMode->PlayerDied(GetController());
+		}
+	}
+
+	OnRep_IsDead();
+}
+
+bool ACTFCharacter::Server_OnDeath_Validate()
+{
+	return true;
+}
+
+void ACTFCharacter::OnRep_IsDead()
+{
+	// This function is called on both server and client
+	if (bIsDead)
+	{
+
+		// Hide the character's mesh for both first and third person views
+		
+
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
+		GetMesh()->SetSimulatePhysics(true);
+
+		FirstPersonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		FirstPersonMesh->SetCollisionResponseToAllChannels(ECR_Block);
+		FirstPersonMesh->SetSimulatePhysics(true);
+		// Disable character movement
+		GetCharacterMovement()->DisableMovement();
+
+		// Disable ability system and input
+		if (AbilitySystemComponent)
+		{
+			AbilitySystemComponent->CancelAllAbilities();
+		}
+
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			DisableInput(PC);
+		}
+	}
+	else // Handle respawn
+	{
+		// Enable collision
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
+
+		// Show the character mesh
+		GetMesh()->SetHiddenInGame(false);
+		FirstPersonMesh->SetHiddenInGame(false);
+
+		// Enable movement
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+
+		// Re-enable input
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			EnableInput(PC);
+		}
+	}
+}
+
+void ACTFCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+
+	// When a character is restarted, reset the death state
+	bIsDead = false;
+	OnRep_IsDead();
+}
+
+# pragma endregion Death Events
+
+
 
 void ACTFCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	/*
-	if (TempPlayerState == nullptr)
-	{
-		TempPlayerState = GetPlayerState<ACTF_PlayerState>();
-		if (TempPlayerState)
-		{
-			
-			ACTF_PlayerController* PC = Cast<ACTF_PlayerController>(Controller);
-			if (PC)
-			{
-				PC->UpdateCharacterTeamColor(TempPlayerState->GetTeam());
-			}
-			
-			
-		}
-	}
-	*/
+	
 }
 
 void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -204,6 +321,7 @@ void ACTFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACTFCharacter, EquippedWeapon);
+	DOREPLIFETIME(ACTFCharacter, bIsDead);
 }
 
 void ACTFCharacter::PossessedBy(AController* NewController)
@@ -214,6 +332,18 @@ void ACTFCharacter::PossessedBy(AController* NewController)
 	{
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 		GiveDefaultAbilitiesAndEffects();
+	}
+
+	CreatePlayerHUD();
+}
+
+void ACTFCharacter::UnPossessed()
+{
+	Super::UnPossessed();
+
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->Destroy();
 	}
 }
 
@@ -296,6 +426,29 @@ void ACTFCharacter::OnTeamsChanged_Implementation(ETeam PlayerTeam)
 	OnTeamsInit(PlayerTeam);
 }
 
+void ACTFCharacter::CreatePlayerHUD_Implementation()
+{
+
+	if (IsLocallyControlled())
+	{
+		if (ACTF_PlayerController* PC = Cast<ACTF_PlayerController>(GetController()))
+		{
+			PC->CreatePlayerHUD();
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HUD")));
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("NO HUD")));
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("NOT CONTROLLER")));
+	}
+
+
+
+}
 
 void ACTFCharacter::UpdateCharacterTeamColor(ETeam NewTeam)
 {

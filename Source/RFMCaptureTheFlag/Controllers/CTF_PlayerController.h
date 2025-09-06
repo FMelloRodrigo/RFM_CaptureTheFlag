@@ -24,6 +24,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Teams")
 	void UpdateCharacterTeamColor(ETeam NewTeam);
 
+	virtual void OnUnPossess() override;
+
+	void CreatePlayerHUD();
+
 protected:
 	
 	virtual void BeginPlay() override;

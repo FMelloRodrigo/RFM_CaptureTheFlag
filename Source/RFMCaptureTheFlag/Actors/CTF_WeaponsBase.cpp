@@ -150,8 +150,8 @@ void ACTF_WeaponsBase::HandleFireOnServer()
 		// Spawn projectile on the server
 		if (ProjectileClass)
 		{
-			const FVector MuzzleLocation = TPWeaponMesh->GetSocketLocation("Muzzle");
-			const FRotator MuzzleRotation = TPWeaponMesh->GetSocketRotation("Muzzle");
+			const FVector MuzzleLocation = FPWeaponMesh->GetSocketLocation("Muzzle");
+			const FRotator MuzzleRotation = FPWeaponMesh->GetSocketRotation("Muzzle");
 
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = GetOwner();

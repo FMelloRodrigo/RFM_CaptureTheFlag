@@ -12,6 +12,8 @@
 #include "GameModes/CTF/Actors/CTF_Flag.h"
 #include "GameModes/CTF/Actors/CTF_Base.h"
 
+#include "TimerManager.h"
+
 ACTF_GameMode::ACTF_GameMode()
 {
 	//bStartPlayersAsSpectators = true;
@@ -258,5 +260,67 @@ void ACTF_GameMode::PlayerKilled(AController* Killer, AController* Victim)
 		FTimerDelegate RestartDelegate;
 		RestartDelegate.BindUFunction(this, FName("RestartPlayer"), Victim);
 		GetWorldTimerManager().SetTimer(RestartTimerHandle, RestartDelegate, 5.0f, false);
+	}
+}
+
+void ACTF_GameMode::RespawnPlayer(AController* CtfController)
+{
+	
+	//
+	
+	if (CtfController)
+	{
+		// Restart the player, which will spawn a new character for them.
+		//RestartPlayer(CtfController);
+		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("DEAD RESPAWNING")));
+		APawn* OldPawn = CtfController->GetPawn();
+		
+		CtfController->UnPossess();
+		OldPawn->Destroy();
+		
+		RestartPlayer(CtfController);
+		/*
+		
+		*/
+	}
+	
+	
+}
+
+void ACTF_GameMode::PlayerDied(AController* CtfController)
+{
+	
+	
+	if (CtfController )
+	{		
+		FTimerHandle RespawnTimerHandle;
+		float RespawnDelay = 1.0f;
+		FTimerDelegate TimerDel;
+		TimerDel.BindUFunction(this, FName("RespawnPlayer"), CtfController);
+		GetWorldTimerManager().SetTimer(RespawnTimerHandle, TimerDel, 5.0f, false);
+	}
+	
+}
+
+void ACTF_GameMode::FindPlayerStartWithTeam(APawn* PlayerPawn)
+{
+	if (ACTF_PlayerState* PState = PlayerPawn->GetPlayerState<ACTF_PlayerState>())
+	{
+
+		TArray<AActor*> PlayersStarts;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACTF_PlayerStart::StaticClass(), PlayersStarts);
+
+		for (AActor* PlayerStart : PlayersStarts)
+		{
+			if (ACTF_PlayerStart* CtfPlayerStart = Cast<ACTF_PlayerStart>(PlayerStart))
+			{
+				if (CtfPlayerStart->Team == PState->GetTeam())
+				{
+					PlayerPawn->SetActorLocation(PlayerStart->GetActorLocation());
+					return;
+				}
+			}
+		}
+
 	}
 }

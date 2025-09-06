@@ -29,6 +29,13 @@ void UCTF_Attributes::PostGameplayEffectExecute(const FGameplayEffectModCallback
 		// Clamp health between 0 and MaxHealth.
 		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
 
+		// Check if health has dropped to or below zero
+		if (GetHealth() <= 0.0f)
+		{
+			// Broadcast the OnDeath delegate instead of calling a function directly.
+			// This decouples the attribute set from the character class.
+			OnCharacterDeath.Broadcast();
+		}
 		// Broadcast the health change event.
 		OnHealthChanged.Broadcast(GetHealth(), GetMaxHealth());
 	}

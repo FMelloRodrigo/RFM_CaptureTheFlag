@@ -16,17 +16,7 @@ void ACTF_PlayerController::BeginPlay()
 
 	// We only want to create the HUD on the client that owns this controller.
 	// IsLocalController() is the perfect check for this.
-	if (IsLocalController())
-	{
-		// APlayerController has a built-in reference to its HUD.
-		// We get it and cast it to our specific FPSHUD class.
-		if (ACTF_HUD* CTFHUD = Cast<ACTF_HUD>(GetHUD()))
-		{
-			// Tell the HUD to create and display its widgets.
-			CTFHUD->CreatePlayerHUD();
-		}
-        
-	}
+    
 }
 
 void ACTF_PlayerController::OnPossess(APawn* InPawn)
@@ -108,6 +98,25 @@ void ACTF_PlayerController::UpdateCharacterTeamColor(ETeam NewTeam)
     }
 	
 	
+}
+
+void ACTF_PlayerController::OnUnPossess()
+{  
+    if (ACTF_HUD* CTFHUD = Cast<ACTF_HUD>(GetHUD()))
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("REMOVE HUD")));
+        CTFHUD->RemovePlayerHUD();
+    }
+    Super::OnUnPossess();
+}
+
+void ACTF_PlayerController::CreatePlayerHUD()
+{
+        if (ACTF_HUD* CTFHUD = Cast<ACTF_HUD>(GetHUD()))
+        {
+            // Tell the HUD to create and display its widgets.
+            CTFHUD->CreatePlayerHUD();
+        } 
 }
 
 /*
