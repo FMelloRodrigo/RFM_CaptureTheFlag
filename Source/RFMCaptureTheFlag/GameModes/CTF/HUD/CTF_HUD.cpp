@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "HUD/CTF_HUD.h"
+#include "GameModes/CTF/HUD/CTF_HUD.h"
 
 #include "Engine/Canvas.h"
 #include "GameFramework/PlayerController.h"

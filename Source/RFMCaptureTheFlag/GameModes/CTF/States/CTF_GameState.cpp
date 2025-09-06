@@ -3,7 +3,7 @@
 
 #include "CTF_GameState.h"
 
-#include "Controllers/CTF_PlayerController.h"
+//#include "GameModes/CTF/Controllers/CTF_PlayerController.h"
 
 
 
@@ -90,7 +90,7 @@ void ACTF_GameState::MatchEnded(ETeam Team)
 	WinnerTeam = Team;
 	//For Server
 	OnMatchEnded.Broadcast(WinnerTeam);
-	bMatchedHasEnded = true;
+	//bMatchedHasEnded = true;
 }
 void ACTF_GameState::OnRep_WinnerTeam()
 {

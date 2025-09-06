@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Controllers/CTF_PlayerController.h"
-#include "HUD/CTF_HUD.h"
+#include "GameModes/CTF/Controllers/CTF_PlayerController.h"
+#include "GameModes/CTF/HUD/CTF_HUD.h"
 #include "Characters/CTFCharacter.h"
 #include "GameModes/CTF/States/CTF_PlayerState.h"
 #include "Kismet/GameplayStatics.h"

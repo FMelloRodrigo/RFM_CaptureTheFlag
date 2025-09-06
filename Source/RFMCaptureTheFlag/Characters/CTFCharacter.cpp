@@ -25,7 +25,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
-// Sets default values
+
 ACTFCharacter::ACTFCharacter()
 {
 
@@ -56,12 +56,12 @@ ACTFCharacter::ACTFCharacter()
 	FirstPersonCameraComponent->FirstPersonFieldOfView = 70.0f;
 	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
 
-	// configure the character comps
+	
 	
 
 	GetCapsuleComponent()->SetCapsuleSize(34.0f, 96.0f);
 
-	// Configure character movement
+
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	GetCharacterMovement()->AirControl = 0.5f;
 
@@ -77,7 +77,6 @@ void ACTFCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ENHANCED INPUT: Add the Input Mapping Context to the player's subsystem. This is crucial!
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -137,7 +136,7 @@ void ACTFCharacter::Die()
 	{
 		return;
 	}
-	// The server handles the core logic of death
+
 	if (HasAuthority())
 	{
 		bIsDead = true;
@@ -154,18 +153,7 @@ void ACTFCharacter::Server_OnDeath_Implementation()
 	{
 		Interface->Execute_CTF_OnPlayerDeath(GM, GetController());
 	}
-	
-	/*
-	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
-	{
-		// Cast the game mode to your custom CTF game mode
-		if (ACTF_GameMode* CtfGameMode = Cast<ACTF_GameMode>(GameMode))
-		{
-			// Notify the game mode that this player has died
-			CtfGameMode->PlayerDied(GetController());
-		}
-	}
-	*/
+
 	OnRep_IsDead();
 }
 
@@ -179,10 +167,6 @@ void ACTFCharacter::OnRep_IsDead()
 	// This function is called on both server and client
 	if (bIsDead)
 	{
-
-		// Hide the character's mesh for both first and third person views
-		
-
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GetMesh()->SetCollisionResponseToAllChannels(ECR_Block);
 		GetMesh()->SetSimulatePhysics(true);
@@ -190,10 +174,10 @@ void ACTFCharacter::OnRep_IsDead()
 		FirstPersonMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		FirstPersonMesh->SetCollisionResponseToAllChannels(ECR_Block);
 		FirstPersonMesh->SetSimulatePhysics(true);
-		// Disable character movement
+
 		GetCharacterMovement()->DisableMovement();
 
-		// Disable ability system and input
+
 		if (AbilitySystemComponent)
 		{
 			AbilitySystemComponent->CancelAllAbilities();
@@ -206,20 +190,20 @@ void ACTFCharacter::OnRep_IsDead()
 	}
 	else // Handle respawn
 	{
-		// Enable collision
+		
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 
-		// Show the character mesh
+		
 		GetMesh()->SetHiddenInGame(false);
 		FirstPersonMesh->SetHiddenInGame(false);
 
-		// Enable movement
+		
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 
-		// Re-enable input
+		
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			EnableInput(PC);
@@ -250,7 +234,7 @@ void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	// ENHANCED INPUT: Cast to the new component type and bind actions
+	
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Jumping
@@ -272,7 +256,7 @@ void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	}
 }
 
-// ENHANCED INPUT: New implementation for the Move action handler
+
 void ACTFCharacter::Move(const FInputActionValue& Value)
 {
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -284,7 +268,7 @@ void ACTFCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-// ENHANCED INPUT: New implementation for the Look action handler
+
 void ACTFCharacter::Look(const FInputActionValue& Value)
 {
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -296,7 +280,7 @@ void ACTFCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-// ENHANCED INPUT: New handler that calls the existing weapon logic
+
 void ACTFCharacter::StartFire(const FInputActionValue& Value)
 {
 	if (EquippedWeapon)
@@ -305,7 +289,7 @@ void ACTFCharacter::StartFire(const FInputActionValue& Value)
 	}
 }
 
-// ENHANCED INPUT: New handler that calls the existing weapon logic
+
 void ACTFCharacter::StopFire(const FInputActionValue& Value)
 {
 	if (EquippedWeapon)
@@ -314,7 +298,7 @@ void ACTFCharacter::StopFire(const FInputActionValue& Value)
 	}
 }
 
-// ENHANCED INPUT: New handler that calls the existing weapon logic
+
 void ACTFCharacter::ToggleFireMode(const FInputActionValue& Value)
 {
 	if (EquippedWeapon)
@@ -325,7 +309,6 @@ void ACTFCharacter::ToggleFireMode(const FInputActionValue& Value)
 
 void ACTFCharacter::OnRep_EquippedWeapon()
 {
-	// Broadcast to the HUD that the weapon has changed
 	OnWeaponEquipped.Broadcast(EquippedWeapon);
 }
 
@@ -389,7 +372,6 @@ void ACTFCharacter::EquipWeapon(ACTF_WeaponsBase* WeaponToEquip)
 			EquippedWeapon->AttachToActor(this, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 			EquippedWeapon->FPWeaponMesh->AttachToComponent(FirstPersonMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("GripPoint"));
 			EquippedWeapon->TPWeaponMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("GripPoint"));
-			//EquippedWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("GripPoint"));
 		}
 	}
 	else
@@ -486,13 +468,14 @@ void ACTFCharacter::UpdateCharacterTeamColor(ETeam NewTeam)
 			if (TeamMaterialInstance)
 			{
 				TeamMaterialInstance->SetVectorParameterValue(FName("Paint Tint"), TeamColor);
-				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
+				
 			}
 
 			if (TeamMaterialInstance2)
 			{
 				TeamMaterialInstance2->SetVectorParameterValue(FName("Paint Tint"), TeamColor);
-				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
+				
 			}
 }
 
+//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));

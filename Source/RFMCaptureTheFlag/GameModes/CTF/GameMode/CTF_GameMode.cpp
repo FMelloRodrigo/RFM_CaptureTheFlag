@@ -5,7 +5,7 @@
 
 #include "GameModes/CTF/States/CTF_GameState.h"
 #include "GameModes/CTF/Actors/CTF_PlayerStart.h"
-#include "Controllers/CTF_PlayerController.h"
+#include "GameModes/CTF/Controllers/CTF_PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
 #include "GameModes/CTF/Actors/CTF_Flag.h"

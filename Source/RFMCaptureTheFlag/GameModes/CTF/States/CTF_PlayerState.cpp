@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/Pawn.h"
-#include "Controllers/CTF_PlayerController.h"
+#include "GameModes/CTF/Controllers/CTF_PlayerController.h"
 #include "Characters/CTFCharacter.h"
 #include "TimerManager.h"
 

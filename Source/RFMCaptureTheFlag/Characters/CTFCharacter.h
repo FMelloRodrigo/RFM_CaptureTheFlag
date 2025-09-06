@@ -29,7 +29,7 @@ class RFMCAPTURETHEFLAG_API ACTFCharacter : public ACharacter, public IAbilitySy
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
+	
 	ACTFCharacter();
 
 	virtual void Tick(float DeltaTime) override;
@@ -38,7 +38,7 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
-	// Implement IAbilitySystemInterface
+	
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
@@ -50,7 +50,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	ACTF_WeaponsBase* GetEquippedWeapon() const { return EquippedWeapon; }
 
-	// Delegate that broadcasts when a weapon is equipped.
+	
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnWeaponEquippedDelegate OnWeaponEquipped;
 
@@ -122,7 +122,7 @@ protected:
 
 	
 	
-	// Components
+
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
@@ -131,15 +131,15 @@ protected:
 	UPROPERTY()
 	UCTF_Attributes* HealthAttributeSet;
 
-	// The weapon the character is currently holding
+	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon, VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	ACTF_WeaponsBase* EquippedWeapon;
 
-	// The weapon the character is currently holding
+
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
 
-	// The class of weapon to spawn and equip at the start
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<ACTF_WeaponsBase> DefaultWeaponClass;
 
@@ -151,7 +151,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<class UGameplayEffect>> DefaultEffects;
 
-	// ENHANCED INPUT: Properties for Input assets
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* DefaultMappingContext;
 
