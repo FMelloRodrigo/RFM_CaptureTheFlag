@@ -30,8 +30,12 @@ ACTFCharacter::ACTFCharacter()
 	bAlwaysRelevant = true;
 	bReplicates = true;
 
-	FirstPersonMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("First Person Mesh"));
+	GetMesh()->SetIsReplicated(true);
+	GetMesh()->SetOnlyOwnerSee(false);
+	GetMesh()->SetOwnerNoSee(false);
+	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
 
+	FirstPersonMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("First Person Mesh"));
 	FirstPersonMesh->SetupAttachment(GetMesh());
 	FirstPersonMesh->SetIsReplicated(true);
 	FirstPersonMesh->SetOnlyOwnerSee(true);
@@ -50,10 +54,7 @@ ACTFCharacter::ACTFCharacter()
 	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
 
 	// configure the character comps
-	GetMesh()->SetOwnerNoSee(false);
-	GetMesh()->SetOnlyOwnerSee(false);
-	GetMesh()->SetIsReplicated(true);
-	GetMesh()->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
+	
 
 	GetCapsuleComponent()->SetCapsuleSize(34.0f, 96.0f);
 

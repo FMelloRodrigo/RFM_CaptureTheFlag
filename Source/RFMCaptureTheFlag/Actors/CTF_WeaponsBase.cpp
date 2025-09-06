@@ -11,6 +11,8 @@ ACTF_WeaponsBase::ACTF_WeaponsBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
+	bAlwaysRelevant = true;
+	SetReplicateMovement(true);
 	SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent = SceneComp;
 
@@ -25,7 +27,10 @@ ACTF_WeaponsBase::ACTF_WeaponsBase()
 	TPWeaponMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::WorldSpaceRepresentation;
 	TPWeaponMesh->SetIsReplicated(true);
 
-	FPWeaponMesh->bOnlyOwnerSee = true;
+	TPWeaponMesh->SetOnlyOwnerSee(false);
+	TPWeaponMesh->SetOwnerNoSee(true);
+	FPWeaponMesh->SetOnlyOwnerSee(true);
+	FPWeaponMesh->SetOwnerNoSee(false);
 
 	FireRate = 600.f;
 	MaxAmmo = 30;
