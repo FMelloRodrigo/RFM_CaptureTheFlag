@@ -6,6 +6,7 @@
 #include "GameFramework/GameMode.h"
 #include "GameFramework/Character.h"
 #include "GameModes/CTF/States/CTF_PlayerState.h"
+#include "GameModes/CTF/Interfaces/ICTF_GameMode.h"
 #include "GameFramework/PlayerController.h"
 #include "Net/UnrealNetwork.h"
 #include "CTF_GameMode.generated.h"
@@ -18,7 +19,7 @@ class ACTF_Flag;
 
 
 UCLASS()
-class RFMCAPTURETHEFLAG_API ACTF_GameMode : public AGameMode
+class RFMCAPTURETHEFLAG_API ACTF_GameMode : public AGameMode, public IICTF_GameMode
 {
 	GENERATED_BODY()
 
@@ -59,6 +60,8 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "CTF")
 	FOnMatchStarted OnMatchStarted;
+
+	virtual void CTF_OnPlayerDeath_Implementation(AController* InController) override;
 
 
 protected:

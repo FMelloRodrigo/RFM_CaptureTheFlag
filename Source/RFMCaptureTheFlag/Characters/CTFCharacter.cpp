@@ -8,18 +8,19 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/GameMode.h"
+#include "Net/UnrealNetwork.h"
+
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GAS/Attributes/CTF_Attributes.h"
+
 #include "Actors/CTF_WeaponsBase.h"
 
-
 #include "Materials/MaterialInstanceDynamic.h"
-#include "Net/UnrealNetwork.h"
 
-#include "GameModes/CTF/States/CTF_GameState.h"
-#include "GameModes/CTF/GameMode/CTF_GameMode.h"
-#include "Controllers/CTF_PlayerController.h"
+#include "GameModes/CTF/Interfaces/ICTF_PlayerController.h"
+#include "GameModes/CTF/Interfaces/ICTF_GameMode.h"
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -143,10 +144,18 @@ void ACTFCharacter::Die()
 		Server_OnDeath();
 	}
 }
-// TODO REMNOVE THIS, NOT GOOD THE PLAYER NEED REF TO GAME MODE
+
 void ACTFCharacter::Server_OnDeath_Implementation()
 {
-	// Get a reference to the game mode
+	
+	IICTF_GameMode* Interface = Cast<IICTF_GameMode>(GetWorld()->GetAuthGameMode());
+	AGameMode* GM = Cast<AGameMode>(GetWorld()->GetAuthGameMode());
+	if (Interface && GM)
+	{
+		Interface->Execute_CTF_OnPlayerDeath(GM, GetController());
+	}
+	
+	/*
 	if (AGameModeBase* GameMode = GetWorld()->GetAuthGameMode())
 	{
 		// Cast the game mode to your custom CTF game mode
@@ -156,7 +165,7 @@ void ACTFCharacter::Server_OnDeath_Implementation()
 			CtfGameMode->PlayerDied(GetController());
 		}
 	}
-
+	*/
 	OnRep_IsDead();
 }
 
@@ -417,9 +426,6 @@ void ACTFCharacter::Server_EquipWeapon_Implementation(ACTF_WeaponsBase* WeaponTo
 }
 
 
-
-
-
 void ACTFCharacter::OnTeamsInit(ETeam InitTeam)
 {
 }
@@ -432,27 +438,21 @@ void ACTFCharacter::OnTeamsChanged_Implementation(ETeam PlayerTeam)
 void ACTFCharacter::CreatePlayerHUD_Implementation()
 {
 
+	// Create Player HUD, calls interface on Player Controller
 	if (IsLocallyControlled())
 	{
-		if (ACTF_PlayerController* PC = Cast<ACTF_PlayerController>(GetController()))
+		IICTF_PlayerController* Interface = Cast<IICTF_PlayerController>(GetController());
+		if (Interface)
 		{
-			PC->CreatePlayerHUD();
-			//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("HUD")));
+			Interface->Execute_CTF_InitPlayerInput(GetController());
 		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("NO HUD")));
-		}
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("NOT CONTROLLER")));
 	}
 
 
 
 }
 
+// Team Colors, should be on it's on actor components, but I didn't have time
 void ACTFCharacter::UpdateCharacterTeamColor(ETeam NewTeam)
 {
 	
@@ -496,42 +496,3 @@ void ACTFCharacter::UpdateCharacterTeamColor(ETeam NewTeam)
 			}
 }
 
-
-	
-
-/*
-if (BaseTeamMaterial)
-		{
-			if (!TeamMaterialInstance)
-			{
-				TeamMaterialInstance = UMaterialInstanceDynamic::Create(BaseTeamMaterial, this);
-				GetMesh()->SetMaterial(0, TeamMaterialInstance);
-				FirstPersonMesh->SetMaterial(0, TeamMaterialInstance);
-			}
-
-			FLinearColor TeamColor;
-			switch (NewTeam)
-			{
-			case ETeam::RedTeam:
-				TeamColor = FLinearColor::Red;
-				break;
-			case ETeam::BlueTeam:
-				TeamColor = FLinearColor::Blue;
-				break;
-			default:
-				TeamColor = FLinearColor::White;
-				break;
-			}
-
-			if (TeamMaterialInstance)
-			{
-				TeamMaterialInstance->SetVectorParameterValue(FName("Paint Tint"), TeamColor);
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
-			}
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, FString::Printf(TEXT("UpdateCharacterTeamColor: Invalid Mesh or BaseTeamMaterial")));
-		}
-
-*/

@@ -9,7 +9,6 @@
 #include "GameplayAbilitySpec.h"
 #include "InputActionValue.h" 
 #include "GameModes/CTF/Interfaces/ICTF_Teams.h"
-#include "GameModes/CTF/States/CTF_PlayerState.h"
 #include "CTFCharacter.generated.h"
 
 class UAbilitySystemComponent;
@@ -55,7 +54,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnWeaponEquippedDelegate OnWeaponEquipped;
 
-	// TEAMS
+	// Calback interface called when team are set, not used currently but can be used for some visuals or anything later
 	UFUNCTION(BlueprintCallable,Category = "Teams")
 	void OnTeamsInit(ETeam InitTeam);
 	

@@ -282,10 +282,9 @@ void ACTF_GameMode::PlayerDied(AController* CtfController)
 			
 		
 		FTimerHandle RespawnTimerHandle;
-		float RespawnDelay = 1.0f;
 		FTimerDelegate TimerDel;
 		TimerDel.BindUFunction(this, FName("RespawnPlayer"), CtfController);
-		GetWorldTimerManager().SetTimer(RespawnTimerHandle, TimerDel, 5.0f, false);
+		GetWorldTimerManager().SetTimer(RespawnTimerHandle, TimerDel, 3.0f, false);
 	}
 	
 }
@@ -339,10 +338,10 @@ void ACTF_GameMode::CheckWinCondition()
 		
 
 		FTimerHandle DisableInputTimerHandle;
-		GetWorldTimerManager().SetTimer(DisableInputTimerHandle, this, &ACTF_GameMode::DisablePlayerInput, 0.25f, false, 0.0f);
+		GetWorldTimerManager().SetTimer(DisableInputTimerHandle, this, &ACTF_GameMode::DisablePlayerInput, 1.f, false, 1.0f);
 
 		FTimerHandle RespawnTimerHandle;
-		GetWorldTimerManager().SetTimer(RespawnTimerHandle,this,&ACTF_GameMode::ResetThisGame,3.f,false,0.0f);
+		GetWorldTimerManager().SetTimer(RespawnTimerHandle,this,&ACTF_GameMode::ResetThisGame,3.f,false,1.0f);
 		
 		//DisablePlayerInput();
 	}
@@ -366,28 +365,7 @@ void ACTF_GameMode::DisablePlayerInput_Implementation()
 	}
 }
 
-
-/*
-void ACTF_GameMode::FindPlayerStartWithTeam(APawn* PlayerPawn)
+void ACTF_GameMode::CTF_OnPlayerDeath_Implementation(AController* InController)
 {
-	if (ACTF_PlayerState* PState = PlayerPawn->GetPlayerState<ACTF_PlayerState>())
-	{
-
-		TArray<AActor*> PlayersStarts;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ACTF_PlayerStart::StaticClass(), PlayersStarts);
-
-		for (AActor* PlayerStart : PlayersStarts)
-		{
-			if (ACTF_PlayerStart* CtfPlayerStart = Cast<ACTF_PlayerStart>(PlayerStart))
-			{
-				if (CtfPlayerStart->Team == PState->GetTeam())
-				{
-					PlayerPawn->SetActorLocation(PlayerStart->GetActorLocation());
-					return;
-				}
-			}
-		}
-
-	}
+	PlayerDied(InController);
 }
-*/

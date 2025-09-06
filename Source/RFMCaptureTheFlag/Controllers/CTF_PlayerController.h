@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "GameModes/CTF/Interfaces/ICTF_Teams.h"
+#include "GameModes/CTF/Interfaces/ICTF_PlayerController.h"
 #include "CTF_PlayerController.generated.h"
 
 class UMaterialInstanceDynamic;
 class UMaterialInterface;
 
 UCLASS()
-class RFMCAPTURETHEFLAG_API ACTF_PlayerController : public APlayerController
+class RFMCAPTURETHEFLAG_API ACTF_PlayerController : public APlayerController, public IICTF_PlayerController
 {
 	GENERATED_BODY()
 
@@ -50,6 +51,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Materials")
 	FName ColorMaterialName;
+
+	virtual void CTF_InitPlayerInput_Implementation() override;
 
 
 };

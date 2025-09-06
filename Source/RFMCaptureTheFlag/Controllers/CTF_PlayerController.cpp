@@ -145,6 +145,10 @@ void ACTF_PlayerController::DisablePlayerInput_Implementation()
 
 }
 
+void ACTF_PlayerController::CTF_InitPlayerInput_Implementation()
+{
+    CreatePlayerHUD();
+}
 /*
 
 FTimerHandle MyTimerHandle;
