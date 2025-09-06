@@ -47,6 +47,8 @@ public:
 	UFUNCTION()
 	void OnFlagDropped();
 
+
+
 	// Called when a player scores
 	UFUNCTION(BlueprintCallable, Category = "CTF")
 	void OnScore(APlayerController* Scorer);
@@ -102,6 +104,8 @@ private:
 	TArray<AController*> RespawningPlayers;
 
 	void CheckWinCondition();
+
+	void AlignFlagWithFloor();
 
 	//void FindPlayerStartWithTeam(APawn* PlayerPawn);
 	
