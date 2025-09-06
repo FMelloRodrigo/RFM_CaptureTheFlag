@@ -38,7 +38,8 @@ ACTF_WeaponsBase::ACTF_WeaponsBase()
 	bIsFiring = false;
 
 	// Broadcast initial ammo count
-	if (GetNetMode() != NM_DedicatedServer)
+	//if (GetNetMode() != NM_DedicatedServer)
+	if(HasAuthority())
 	{
 		OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmo);
 	}
