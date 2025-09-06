@@ -3,7 +3,6 @@
 
 #include "CTF_GameState.h"
 
-//#include "GameModes/CTF/Controllers/CTF_PlayerController.h"
 
 
 
@@ -14,7 +13,7 @@ ACTF_GameState::ACTF_GameState()
 	BlueTeamScore = 0;
 	bReplicates = true;
 	WinnerTeam = ETeam::None;
-	bMatchedHasEnded = false;
+
 }
 
 
@@ -29,7 +28,7 @@ void ACTF_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, RedTeamScore, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, BlueTeamScore, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, WinnerTeam, COND_None, REPNOTIFY_Always);
-	DOREPLIFETIME_CONDITION_NOTIFY(ACTF_GameState, bMatchedHasEnded, COND_None, REPNOTIFY_Always);
+
 }
 
 void ACTF_GameState::OnRep_RedTeamScore()
@@ -90,14 +89,9 @@ void ACTF_GameState::MatchEnded(ETeam Team)
 	WinnerTeam = Team;
 	//For Server
 	OnMatchEnded.Broadcast(WinnerTeam);
-	//bMatchedHasEnded = true;
 }
 void ACTF_GameState::OnRep_WinnerTeam()
 {
 	OnMatchEnded.Broadcast(WinnerTeam);
 }
 
-void ACTF_GameState::OnRep_MatchedHasEnded()
-{
-	OnMatchEnded.Broadcast(WinnerTeam);
-}

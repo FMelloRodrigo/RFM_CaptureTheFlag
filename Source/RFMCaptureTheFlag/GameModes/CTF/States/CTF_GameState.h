@@ -55,8 +55,7 @@ public:
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Teams", ReplicatedUsing = OnRep_WinnerTeam)
 	ETeam WinnerTeam;
 	
-	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Teams", ReplicatedUsing = OnRep_MatchedHasEnded)
-	bool bMatchedHasEnded;
+
 
 
 	
@@ -76,7 +75,6 @@ protected:
 	void OnRep_BlueTeamScore();
 	UFUNCTION()
 	void OnRep_WinnerTeam();
-	UFUNCTION()
-	void OnRep_MatchedHasEnded();
+
 	
 };
