@@ -8,7 +8,7 @@
 
 ACTF_GameState::ACTF_GameState()
 {
-	// Initialize scores
+	// Initialize scores and variables
 	RedTeamScore = 0;
 	BlueTeamScore = 0;
 	bReplicates = true;
@@ -21,7 +21,6 @@ void ACTF_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	// Replicate team players arrays and scores
 	DOREPLIFETIME(ACTF_GameState, RedTeamPlayers);
 	DOREPLIFETIME(ACTF_GameState, BlueTeamPlayers);
 
@@ -33,13 +32,11 @@ void ACTF_GameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 void ACTF_GameState::OnRep_RedTeamScore()
 {
-	// This function is called on all clients when RedTeamScore is replicated.
 	OnTeamScored.Broadcast(RedTeamScore, BlueTeamScore, ETeam::RedTeam);
 }
 
 void ACTF_GameState::OnRep_BlueTeamScore()
 {
-	// This function is called on all clients when BlueTeamScore is replicated.
 	OnTeamScored.Broadcast(RedTeamScore, BlueTeamScore, ETeam::BlueTeam);
 }
 
@@ -47,7 +44,6 @@ void ACTF_GameState::OnRep_BlueTeamScore()
 
 void ACTF_GameState::AddPlayerToTeam(ACTF_PlayerState* PlayerState, ETeam Team)
 {
-	
 	 
 	if (PlayerState)
 
@@ -62,8 +58,7 @@ void ACTF_GameState::AddPlayerToTeam(ACTF_PlayerState* PlayerState, ETeam Team)
 			BlueTeamPlayers.AddUnique(PlayerState);
 			
 		}
-	}
-	
+	}	
 }
 
 void ACTF_GameState::AddScoreToTeam(ETeam Team, int32 ScoreToAdd)
@@ -71,18 +66,14 @@ void ACTF_GameState::AddScoreToTeam(ETeam Team, int32 ScoreToAdd)
 	if (Team == ETeam::RedTeam)
 	{
 		RedTeamScore += ScoreToAdd;
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("SCORED: %s"), *UEnum::GetValueAsString(Team)));
 	}
 	else if (Team == ETeam::BlueTeam)
 	{
 		BlueTeamScore += ScoreToAdd;
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("SCORED: %s"), *UEnum::GetValueAsString(Team)));
 	}
 	// For server players
 	OnTeamScored.Broadcast(RedTeamScore, BlueTeamScore, Team);
 }
-
-
 
 void ACTF_GameState::MatchEnded(ETeam Team)
 {

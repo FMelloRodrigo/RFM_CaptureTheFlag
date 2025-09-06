@@ -46,7 +46,6 @@ ACTFCharacter::ACTFCharacter()
 	FirstPersonMesh->FirstPersonPrimitiveType = EFirstPersonPrimitiveType::FirstPerson;
 	FirstPersonMesh->SetCollisionProfileName(FName("NoCollision"));
 
-
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("First Person Camera"));
 	FirstPersonCameraComponent->SetupAttachment(FirstPersonMesh, FName("head"));
 	FirstPersonCameraComponent->SetRelativeLocationAndRotation(FVector(-2.8f, 5.89f, 0.0f), FRotator(0.0f, 90.0f, -90.0f));
@@ -56,11 +55,7 @@ ACTFCharacter::ACTFCharacter()
 	FirstPersonCameraComponent->FirstPersonFieldOfView = 70.0f;
 	FirstPersonCameraComponent->FirstPersonScale = 0.6f;
 
-	
-	
-
 	GetCapsuleComponent()->SetCapsuleSize(34.0f, 96.0f);
-
 
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	GetCharacterMovement()->AirControl = 0.5f;
@@ -106,11 +101,7 @@ void ACTFCharacter::BeginPlay()
 		
 	}
 	
-	
 }
-
-
-
 
 # pragma region Death Events
 
@@ -177,7 +168,6 @@ void ACTFCharacter::OnRep_IsDead()
 
 		GetCharacterMovement()->DisableMovement();
 
-
 		if (AbilitySystemComponent)
 		{
 			AbilitySystemComponent->CancelAllAbilities();
@@ -196,14 +186,11 @@ void ACTFCharacter::OnRep_IsDead()
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 
-		
 		GetMesh()->SetHiddenInGame(false);
 		FirstPersonMesh->SetHiddenInGame(false);
 
-		
 		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
-
-		
+	
 		if (APlayerController* PC = Cast<APlayerController>(GetController()))
 		{
 			EnableInput(PC);
@@ -226,8 +213,7 @@ void ACTFCharacter::PawnClientRestart()
 
 void ACTFCharacter::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
-	
+	Super::Tick(DeltaTime);	
 }
 
 void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -237,21 +223,16 @@ void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Move);
 
-		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Look);
 
-		// Firing
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ACTFCharacter::StartFire);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ACTFCharacter::StopFire);
 
-		// Toggle Fire Mode
 		EnhancedInputComponent->BindAction(ToggleFireModeAction, ETriggerEvent::Started, this, &ACTFCharacter::ToggleFireMode);
 	}
 }

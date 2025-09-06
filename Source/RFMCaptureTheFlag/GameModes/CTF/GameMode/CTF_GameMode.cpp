@@ -16,7 +16,6 @@
 
 ACTF_GameMode::ACTF_GameMode()
 {
-
 }
 
 void ACTF_GameMode::PostLogin(APlayerController* NewPlayer)
@@ -29,7 +28,6 @@ void ACTF_GameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ACTF_GameMode, FlagActor);
-
 }
 
 void ACTF_GameMode::Logout(AController* Exiting)
@@ -57,6 +55,8 @@ void ACTF_GameMode::HandleStartingNewPlayer_Implementation(APlayerController* Ne
 
 }
 
+// Finds the best team ( the one with less members) and assign the player
+// Finds a random Player Start of that team 
 AActor* ACTF_GameMode::ChoosePlayerStart_Implementation(AController* Player)
 {	
 	ACTF_GameState* CtfGameState = GetGameState<ACTF_GameState>();
@@ -142,7 +142,6 @@ void ACTF_GameMode::OnFlagPickedUp(APawn* PlayerPawn, ACTF_Flag* Flag)
 
 void ACTF_GameMode::OnFlagDropped()
 {
-	//TODO Do a trace to Adjust Flag position
 	FlagActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	FlagActor->OnFlagDropped();
 	AlignFlagWithFloor();
@@ -308,8 +307,3 @@ void ACTF_GameMode::AlignFlagWithFloor()
 
 
 }
-
-
-//GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("Current State")));
-//GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("Current State: %s"), *UEnum::GetValueAsString(CtfPlayerState->GetTeam())));
-//GEngine->AddOnScreenDebugMessage(-1, 55.f, FColor::Yellow, FString::Printf(TEXT("ASSINED TO RED TEAM")));

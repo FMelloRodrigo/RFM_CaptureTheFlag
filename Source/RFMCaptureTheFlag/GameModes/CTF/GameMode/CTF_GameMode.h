@@ -37,19 +37,13 @@ public:
 
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
 
-	// virtual bool ReadyToStartMatch_Implementation() override;
-
 	void PlayerDied(AController* CtfController);
 
-	// Called when a player picks up the flag
 	UFUNCTION()
 	void OnFlagPickedUp(APawn* PlayerPawn, ACTF_Flag* Flag);
 	UFUNCTION()
 	void OnFlagDropped();
 
-
-
-	// Called when a player scores
 	UFUNCTION(BlueprintCallable, Category = "CTF")
 	void OnScore(APlayerController* Scorer);
 
@@ -67,29 +61,26 @@ public:
 
 
 protected:
-	// The flag actor in the world
+
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "CTF", ReplicatedUsing = OnRep_FlagActor)
 	ACTF_Flag* FlagActor;
 
 	UFUNCTION()
 	void OnRep_FlagActor();
 
-	// Spawns the flag at the center of the map
 	void FindInitialFlag();
 
 	UPROPERTY()
 	FTransform InitalFlagTransform;
 
-	//void PlayerKilled(AController* Killer, AController* Victim);
-
 	UFUNCTION()
 	void RespawnPlayer(AController* CtfController);
 
-	// Resets the flag to its original location
+
 	UFUNCTION(NetMulticast, Reliable)
 	void ResetFlag();
 
-	// Resets the game state
+
 	void ResetThisGame();
 
 	virtual void HandleMatchHasStarted() override;
@@ -107,7 +98,4 @@ private:
 
 	void AlignFlagWithFloor();
 
-	//void FindPlayerStartWithTeam(APawn* PlayerPawn);
-	
-	
 };

@@ -38,12 +38,19 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void UnPossessed() override;
 
-	
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
+	class USkeletalMeshComponent* FirstPersonMesh;
 
+	UFUNCTION(Client, Reliable)
+	void CreatePlayerHUD();
+
+// GAS
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	float GetHealth() const;
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+
+// Weapons 
 	UFUNCTION(BlueprintCallable, Category = "Weapon")
 	void EquipWeapon(ACTF_WeaponsBase* WeaponToEquip);
 
@@ -54,18 +61,15 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnWeaponEquippedDelegate OnWeaponEquipped;
 
+
+#pragma region TeamColors
+
+
 	// Calback interface called when team are set, not used currently but can be used for some visuals or anything later
-	UFUNCTION(BlueprintCallable,Category = "Teams")
+	UFUNCTION(BlueprintCallable, Category = "Teams")
 	void OnTeamsInit(ETeam InitTeam);
-	
+
 	void OnTeamsChanged_Implementation(ETeam PlayerTeam) override;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")
-	class USkeletalMeshComponent* FirstPersonMesh;
-
-	UFUNCTION(Client, Reliable)
-	void CreatePlayerHUD();
-
 
 	void UpdateCharacterTeamColor(ETeam NewTeam);
 
@@ -75,10 +79,11 @@ public:
 	UPROPERTY()
 	UMaterialInstanceDynamic* TeamMaterialInstance2;
 
-protected:
-	virtual void BeginPlay() override;
-	
+#pragma endregion TeamColors
 
+protected:
+	
+	virtual void BeginPlay() override;
 	
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
@@ -120,28 +125,13 @@ protected:
 
 # pragma endregion Death Events
 
-	
-	
 
-
-
+// GAS 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities")
 	UAbilitySystemComponent* AbilitySystemComponent;
 
 	UPROPERTY()
 	UCTF_Attributes* HealthAttributeSet;
-
-	
-	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon, VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
-	ACTF_WeaponsBase* EquippedWeapon;
-
-
-	UFUNCTION()
-	void OnRep_EquippedWeapon();
-
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
-	TSubclassOf<ACTF_WeaponsBase> DefaultWeaponClass;
 
 	// Default abilities to grant to the character on startup
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
@@ -151,7 +141,20 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<class UGameplayEffect>> DefaultEffects;
 
+	void GiveDefaultAbilitiesAndEffects();
 
+// Weapons 	
+	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon, VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	ACTF_WeaponsBase* EquippedWeapon;
+
+	UFUNCTION()
+	void OnRep_EquippedWeapon();
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<ACTF_WeaponsBase> DefaultWeaponClass;
+
+#pragma region InputActions
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputMappingContext* DefaultMappingContext;
 
@@ -170,9 +173,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
 	UInputAction* ToggleFireModeAction;
 
-	void GiveDefaultAbilitiesAndEffects();
+#pragma endregion InputActions
+
 
 private:
+
 	UFUNCTION(Server, Reliable)
 	void Server_EquipWeapon(ACTF_WeaponsBase* WeaponToEquip);
 

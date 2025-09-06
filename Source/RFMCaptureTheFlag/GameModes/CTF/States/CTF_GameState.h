@@ -20,22 +20,16 @@ class RFMCAPTURETHEFLAG_API ACTF_GameState : public AGameState
 public:
 	ACTF_GameState();
 
-
-
-	// Function to add a player to a team
 	void AddPlayerToTeam(ACTF_PlayerState* PlayerState, ETeam Team);
 
 	void MatchEnded(ETeam Team);
 
-	// Function to increment score for a team
 	UFUNCTION(BlueprintCallable, Category = "Teams")
 	void AddScoreToTeam(ETeam Team, int32 ScoreToAdd);
 
-	// Replicated array for players on the red team
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Teams")
 	TArray<class ACTF_PlayerState*> RedTeamPlayers;
 
-	// Replicated array for players on the blue team
 	UPROPERTY(Replicated, BlueprintReadOnly, Category = "Teams")
 	TArray<class ACTF_PlayerState*> BlueTeamPlayers;
 
@@ -54,20 +48,11 @@ public:
 
 	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Teams", ReplicatedUsing = OnRep_WinnerTeam)
 	ETeam WinnerTeam;
-	
-
-
-
-	
 
 
 protected:
 
-	// Override to handle variable replication
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-
-	
 
 	UFUNCTION()
 	void OnRep_RedTeamScore();
@@ -75,6 +60,5 @@ protected:
 	void OnRep_BlueTeamScore();
 	UFUNCTION()
 	void OnRep_WinnerTeam();
-
 	
 };

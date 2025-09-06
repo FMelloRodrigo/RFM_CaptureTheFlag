@@ -15,34 +15,34 @@ class RFMCAPTURETHEFLAG_API ACTF_Flag : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
+	
 	ACTF_Flag();
 
 protected:
-	// Called when the game starts or when spawned
+	
 	virtual void BeginPlay() override;
 
-	// The collision component for the flag
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USphereComponent* CollisionComponent;
 
-	// The static mesh component for the flag
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UStaticMeshComponent* FlagMesh;
 
-	// Overlap function to detect when a player walks over the flag
+	
 	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 public:
-	// Public function to drop the flag at the current location
+	
 	UFUNCTION()
 	void OnFlagDropped();
 	UFUNCTION()
 	void EnableFlagCollision();
 
 private:
-	// A boolean to track if the flag is currently held by a player
+	
 	UPROPERTY(Replicated)
 	bool bIsHeld;
 

@@ -30,8 +30,8 @@ ACTF_ProjectileBase::ACTF_ProjectileBase()
 	ProjectileMovementComponent->InitialSpeed = ProjSpeed;
 	ProjectileMovementComponent->MaxSpeed = ProjSpeed;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->bShouldBounce = false;
-	ProjectileMovementComponent->ProjectileGravityScale = 0.f;
+	ProjectileMovementComponent->bShouldBounce = ProjShouldBounce;
+	ProjectileMovementComponent->ProjectileGravityScale = ProjGravityScale;
 
 	
 
@@ -72,7 +72,5 @@ void ACTF_ProjectileBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, OtherActor->GetActorNameOrLabel());
 
 

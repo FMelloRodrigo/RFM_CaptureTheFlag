@@ -13,18 +13,18 @@
 
 ACTF_Flag::ACTF_Flag()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	bAlwaysRelevant = true;
 	SetReplicateMovement(true);
 
-	// Create and set up the collision component
+	
 	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComponent"));
 	RootComponent = CollisionComponent;
 	CollisionComponent->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
 
-	// Create and set up the flag mesh
+	
 	FlagMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlagMesh"));
 	FlagMesh->SetupAttachment(RootComponent);
 	FlagMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -33,12 +33,11 @@ ACTF_Flag::ACTF_Flag()
 	
 }
 
-// Called when the game starts or when spawned
 void ACTF_Flag::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Register the overlap event only on the server
+	
 	if (HasAuthority())
 	{
 		CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &ACTF_Flag::OnOverlapBegin);
@@ -47,8 +46,6 @@ void ACTF_Flag::BeginPlay()
 
 void ACTF_Flag::OnFlagDropped()
 {
-	// This function should be called by the player's pawn when it dies.
-	// We make it an RPC so it can be called from the client if needed, but the main logic should be server-side.
 	if (HasAuthority())
 	{
 		SetActorHiddenInGame(false);
@@ -57,18 +54,14 @@ void ACTF_Flag::OnFlagDropped()
 	}
 }
 
-
-
 void ACTF_Flag::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	// Check if the other actor is a player pawn
+{	
 	APawn* PlayerPawn = Cast<APawn>(OtherActor);
 	if (PlayerPawn && !bIsHeld)
 	{
 		ACTF_PlayerState* PlayerState = PlayerPawn->GetPlayerState<ACTF_PlayerState>();
 		if (PlayerState)
 		{
-			// Get the Game Mode and call the flag pickup function
 			ACTF_GameMode* GameMode = Cast<ACTF_GameMode>(UGameplayStatics::GetGameMode(this));
 			if (GameMode && !GameMode->IsPlayerRespawning(PlayerPawn->GetController()))
 			{

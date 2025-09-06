@@ -19,21 +19,18 @@ class RFMCAPTURETHEFLAG_API ACTF_PlayerState : public APlayerState
 public:
     ACTF_PlayerState();
 
-    // Setter for Team - Called on the server
     void SetTeam(ETeam NewTeam);
 
     
-
-    // Getter for Team
-    UFUNCTION(BlueprintCallable, Category = "Teams")
+   UFUNCTION(BlueprintCallable, Category = "Teams")
     ETeam GetTeam() const;
 
 private:
-    // The player's current team
+
     UPROPERTY(ReplicatedUsing = OnRep_Team)
     ETeam Team = ETeam::None;
 
-    // Replication notification function for Team
+
     UFUNCTION()
     void OnRep_Team();
 
@@ -41,15 +38,9 @@ private:
     void PSPawnSet(APlayerState* Player, APawn* NewPawn, APawn* OldPawn);
     
     void SendTeamChangeMessage();
-    //void RestartPlayerOnServer();
-
-    /*
-    UFUNCTION(Server, Reliable)
-    void OnTeamChanged_Server();
-    */
 
 protected:
-    // Replication logic
+
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     virtual void BeginPlay() override;
 };

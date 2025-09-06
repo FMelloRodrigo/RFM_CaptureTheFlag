@@ -33,6 +33,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Options")
 	float ProjSpeed = 4500.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Options")
+	float ProjGravityScale = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Options")
+	bool ProjShouldBounce = false;
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 

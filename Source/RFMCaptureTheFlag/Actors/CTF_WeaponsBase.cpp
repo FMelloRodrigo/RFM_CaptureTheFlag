@@ -32,13 +32,12 @@ ACTF_WeaponsBase::ACTF_WeaponsBase()
 	FPWeaponMesh->SetOnlyOwnerSee(true);
 	FPWeaponMesh->SetOwnerNoSee(false);
 
-	FireRate = 600.f;
+	// Default Values for Weapon
+	FireRate = 100.f;
 	MaxAmmo = 30;
 	CurrentFireMode = EFireMode::FullAuto;
 	bIsFiring = false;
 
-	// Broadcast initial ammo count
-	//if (GetNetMode() != NM_DedicatedServer)
 	if(HasAuthority())
 	{
 		OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmo);
@@ -108,12 +107,12 @@ void ACTF_WeaponsBase::Fire()
 {
 	if (HasAuthority())
 	{
-		// Server-controlled (AI or listen server host)
+		
 		HandleFireOnServer();
 	}
 	else
 	{
-		// Client asks the server to fire
+		
 		Server_Fire();
 	}
 }
@@ -131,7 +130,6 @@ void ACTF_WeaponsBase::Server_Fire_Implementation()
 void ACTF_WeaponsBase::StartAmmoRegen()
 {
 	RegenerateAmmo();
-	//GetWorldTimerManager().SetTimer(TimerHandle_AmmoRegen, this, &ACTF_WeaponsBase::RegenerateAmmo, 2.0f, false);
 }
 
 void ACTF_WeaponsBase::RegenerateAmmo()
@@ -142,18 +140,13 @@ void ACTF_WeaponsBase::RegenerateAmmo()
 		OnAmmoChanged.Broadcast(CurrentAmmo, MaxAmmo); // Broadcast for server player
 	}
 }
-// Rename this later
+
 void ACTF_WeaponsBase::HandleFireOnServer()
 {
 	if (CurrentAmmo > 0)
 	{
-		// Decrement on the server so it replicates
 		CurrentAmmo--;
 
-		// Optional but helps timeliness
-		ForceNetUpdate();
-
-		// Spawn projectile on the server
 		if (ProjectileClass)
 		{
 			const FVector MuzzleLocation = FPWeaponMesh->GetSocketLocation("Muzzle");

@@ -25,14 +25,12 @@ private:
 	
 	virtual void BeginPlay() override;
 
-	// The class of the main player HUD widget to create
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<class UUserWidget> PlayerHUDWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<class UUserWidget> MatchHUDWidgetClass;
 
-	// The instance of the created widget
 	UPROPERTY()
 	UUserWidget* PlayerHUDWidget;
 
