@@ -26,81 +26,95 @@ class RFMCAPTURETHEFLAG_API ACTF_WeaponsBase : public AActor
 	
 public:	
 
-	ACTF_WeaponsBase();
+    ACTF_WeaponsBase();
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
-	void StartFire();
-	void StopFire();
-	void ToggleFireMode();
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION(BlueprintPure)
-	int32 GetCurrentAmmo() const { return CurrentAmmo; }
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void StartFire();
 
-	UFUNCTION(BlueprintPure)
-	int32 GetMaxAmmo() const { return MaxAmmo; }
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void StopFire();
 
-	// Delegate that will be broadcasted when ammo changes
-	UPROPERTY(BlueprintAssignable, Category = "Weapon")
-	FOnAmmoChangedDelegate OnAmmoChanged;
+    UFUNCTION(BlueprintCallable, Category = "Weapon")
+    void ToggleFireMode();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USkeletalMeshComponent* TPWeaponMesh;
+    UFUNCTION(BlueprintPure)
+    int32 GetCurrentAmmo() const { return CurrentAmmo; }
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USkeletalMeshComponent* FPWeaponMesh;
+    UFUNCTION(BlueprintPure)
+    int32 GetMaxAmmo() const { return MaxAmmo; }
 
-	//EFfects 
-	UPROPERTY(EditDefaultsOnly, Category = "Effects")
-	UNiagaraSystem* SpawnParticleSystem;
+    UPROPERTY(BlueprintAssignable, Category = "Weapon")
+    FOnAmmoChangedDelegate OnAmmoChanged;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Effects")
-	USoundCue* SpawnSound;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    USkeletalMeshComponent* TPWeaponMesh;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    USkeletalMeshComponent* FPWeaponMesh;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Effects")
+    UNiagaraSystem* SpawnParticleSystem;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Effects")
+    USoundCue* SpawnSound;
 
 protected:
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	USceneComponent* SceneComp;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    USceneComponent* SceneComp;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	TSubclassOf<class ACTF_ProjectileBase> ProjectileClass;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    TSubclassOf<class ACTF_ProjectileBase> ProjectileClass;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	float FireRate; // Rounds per minute
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    float FireRate; // Rounds per minute
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	int32 MaxAmmo;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    int32 MaxAmmo;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentAmmo, BlueprintReadOnly, Category = "Weapon")
-	int32 CurrentAmmo;
+    UPROPERTY(ReplicatedUsing = OnRep_CurrentAmmo, BlueprintReadOnly, Category = "Weapon")
+    int32 CurrentAmmo;
 
-	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
-	EFireMode CurrentFireMode;
+    UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    EFireMode CurrentFireMode;
 
-	UFUNCTION()
-	void OnRep_CurrentAmmo();
+    UPROPERTY(ReplicatedUsing = OnRep_IsFiring, BlueprintReadOnly, Category = "Weapon")
+    bool bIsFiring;
+
+    UFUNCTION()
+    void OnRep_CurrentAmmo();
+
+    UFUNCTION()
+    void OnRep_IsFiring();
 
 private:
-	FTimerHandle TimerHandle_AutoFire;
-	FTimerHandle TimerHandle_AmmoRegen;
-	float TimeBetweenShots;
-	bool bIsFiring;
+    FTimerHandle TimerHandle_AutoFire;
+    FTimerHandle TimerHandle_AmmoRegen;
+    float TimeBetweenShots;
 
-	void Fire();
+    void Fire();
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Fire();
+    UFUNCTION(Server, Reliable, WithValidation)
+    void Server_Fire();
 
-	void StartAmmoRegen();
-	void RegenerateAmmo();
+    UFUNCTION(Server, Reliable, WithValidation)
+    void Server_StartFire();
 
-	void HandleFireOnServer(); 
+    UFUNCTION(Server, Reliable, WithValidation)
+    void Server_StopFire();
 
-	UFUNCTION(NetMulticast, Unreliable)
-	void Multicast_PlayHitEffects(const FVector& Location);
+    void StartAmmoRegen();
+    void RegenerateAmmo();
 
-	void PlayHitEffects(const FVector& Location);
+    void HandleFireOnServer();
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void Multicast_PlayHitEffects(const FVector& Location);
+
+    void PlayHitEffects(const FVector& Location);
 
 
 };

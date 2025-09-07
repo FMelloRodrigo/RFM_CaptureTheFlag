@@ -9,5 +9,4 @@ enum class EAbilityInputID : uint8
 	Cancel,
 	Jump,
 	Fire,
-	ToggleFireMode
 };

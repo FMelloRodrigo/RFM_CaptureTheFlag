@@ -95,9 +95,6 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
-	
-	void StartFire(const FInputActionValue& Value);
-	void StopFire(const FInputActionValue& Value);
 	void ToggleFireMode(const FInputActionValue& Value);
 
 
@@ -140,11 +137,9 @@ protected:
 	UPROPERTY()
 	UCTF_Attributes* HealthAttributeSet;
 
-	// Default abilities to grant to the character on startup
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<class UGameplayAbility>> DefaultAbilities;
 
-	// Default gameplay effects to apply on startup
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
 	TArray<TSubclassOf<class UGameplayEffect>> DefaultEffects;
 
@@ -187,5 +182,8 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void Server_EquipWeapon(ACTF_WeaponsBase* WeaponToEquip);
+
+	void InputAbilityPressed(FGameplayTag InputTag);
+	void InputAbilityReleased(FGameplayTag InputTag);
 
 };

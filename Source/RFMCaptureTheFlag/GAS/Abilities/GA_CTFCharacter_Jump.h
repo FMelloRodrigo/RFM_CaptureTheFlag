@@ -4,17 +4,19 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
-#include "GA_CTFCharacter_Shoot.generated.h"
+#include "GA_CTFCharacter_Jump.generated.h"
 
-class ACTF_WeaponsBase;
-
+/**
+ * 
+ */
 UCLASS()
-class RFMCAPTURETHEFLAG_API UGA_CTFCharacter_Shoot : public UGameplayAbility
+class RFMCAPTURETHEFLAG_API UGA_CTFCharacter_Jump : public UGameplayAbility
 {
 	GENERATED_BODY()
-
+	
 public:
-    UGA_CTFCharacter_Shoot();
+
+    UGA_CTFCharacter_Jump();
 
     virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
 
@@ -22,9 +24,5 @@ protected:
     virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
     virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
-private:
-    UPROPERTY()
-    ACTF_WeaponsBase* LocalEquippedWeapon;
-	
 };
+

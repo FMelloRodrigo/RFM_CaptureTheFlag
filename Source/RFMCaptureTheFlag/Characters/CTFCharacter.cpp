@@ -14,6 +14,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GAS/Attributes/CTF_Attributes.h"
+#include "GameplayTagContainer.h"
 
 #include "Actors/CTF_WeaponsBase.h"
 
@@ -24,7 +25,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-
+#include "InputMappingContext.h"
 
 ACTFCharacter::ACTFCharacter()
 {
@@ -121,17 +122,49 @@ void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Move);
 
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Look);
 
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ACTFCharacter::StartFire);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ACTFCharacter::StopFire);
+		// Bind Jump and Fire actions to Gameplay Abilities
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACTFCharacter::InputAbilityPressed, FGameplayTag::RequestGameplayTag(FName("Ability.Jump")));
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACTFCharacter::InputAbilityReleased, FGameplayTag::RequestGameplayTag(FName("Ability.Jump")));
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ACTFCharacter::InputAbilityPressed, FGameplayTag::RequestGameplayTag(FName("Ability.Shoot")));
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ACTFCharacter::InputAbilityReleased, FGameplayTag::RequestGameplayTag(FName("Ability.Shoot")));
 
 		EnhancedInputComponent->BindAction(ToggleFireModeAction, ETriggerEvent::Started, this, &ACTFCharacter::ToggleFireMode);
+
+	}
+}
+
+void ACTFCharacter::InputAbilityPressed(FGameplayTag InputTag)
+{
+	if (AbilitySystemComponent)
+	{		
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(InputTag);
+		AbilitySystemComponent->TryActivateAbilitiesByTag(TagContainer);
+	}
+}
+
+void ACTFCharacter::InputAbilityReleased(FGameplayTag InputTag)
+{
+	if (AbilitySystemComponent)
+	{
+		
+		FGameplayTagContainer TagContainer;
+		TagContainer.AddTag(InputTag);
+		TArray<FGameplayAbilitySpec*> ActivatableAbilities;
+		AbilitySystemComponent->GetActivatableGameplayAbilitySpecsByAllMatchingTags(TagContainer, ActivatableAbilities);
+
+		for (FGameplayAbilitySpec* Spec : ActivatableAbilities)
+		{
+			if (Spec && Spec->IsActive())
+			{
+				AbilitySystemComponent->CancelAbilityHandle(Spec->Handle);
+			}
+		}
 	}
 }
 
@@ -249,25 +282,6 @@ void ACTFCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-
-void ACTFCharacter::StartFire(const FInputActionValue& Value)
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->StartFire();
-	}
-}
-
-
-void ACTFCharacter::StopFire(const FInputActionValue& Value)
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->StopFire();
-	}
-}
-
-
 void ACTFCharacter::ToggleFireMode(const FInputActionValue& Value)
 {
 	if (EquippedWeapon)
@@ -382,7 +396,8 @@ void ACTFCharacter::GiveDefaultAbilitiesAndEffects()
 	{
 		for (TSubclassOf<UGameplayAbility>& Ability : DefaultAbilities)
 		{
-			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability, 1, INDEX_NONE));
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability, 1, INDEX_NONE, this);
+			AbilitySystemComponent->GiveAbility(AbilitySpec);
 		}
 
 		for (TSubclassOf<UGameplayEffect>& Effect : DefaultEffects)
