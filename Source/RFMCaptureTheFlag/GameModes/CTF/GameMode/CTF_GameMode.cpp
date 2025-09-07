@@ -8,6 +8,10 @@
 #include "GameModes/CTF/Controllers/CTF_PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "GameplayAbilitySpec.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+
 #include "GameModes/CTF/Actors/CTF_Flag.h"
 #include "GameModes/CTF/Actors/CTF_Base.h"
 
@@ -133,6 +137,7 @@ void ACTF_GameMode::OnFlagPickedUp(APawn* PlayerPawn, ACTF_Flag* Flag)
 			FlagActor->AttachToComponent(PCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("FlagSocket"));
 			FlagActor->SetOwner(PlayerPawn);
 			FlagPlayer = Cast<APlayerController>(PlayerPawn->GetController());
+			ApplyOrRemoveFlagEffect(true);
 
 		}
 		
@@ -145,6 +150,7 @@ void ACTF_GameMode::OnFlagDropped()
 	FlagActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	FlagActor->OnFlagDropped();
 	AlignFlagWithFloor();
+	ApplyOrRemoveFlagEffect(false);
 	FlagPlayer = nullptr;
 }
 
@@ -307,3 +313,43 @@ void ACTF_GameMode::AlignFlagWithFloor()
 
 
 }
+
+#pragma region Effects
+
+void ACTF_GameMode::ApplyOrRemoveFlagEffect(bool Add)
+{
+	
+	if (APlayerController* PC = Cast<APlayerController>(FlagPlayer))
+	{
+		if (APawn* LPawn = PC->GetPawn())
+		{
+			if (UAbilitySystemComponent* ASC = LPawn->FindComponentByClass<UAbilitySystemComponent>())
+			{
+				if (Add)
+				{
+					FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+					ContextHandle.AddSourceObject(FlagActor);
+					FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(FlagCarryEffect, 1, ContextHandle);
+					if (SpecHandle.IsValid())
+					{
+						ASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), ASC);
+						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("EFFECT APPLIED"));
+					}
+
+				}
+				else
+				{
+					ASC->RemoveActiveGameplayEffectBySourceEffect(FlagCarryEffect, ASC);
+					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("EFFECT REMOVED"));
+
+				}
+				
+			}
+
+		}
+
+	}
+
+}
+
+#pragma endregion Effects

@@ -16,7 +16,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMatchEnded, ETeam, WinnerTeam);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMatchStarted);
 
 class ACTF_Flag;
-
+class UGameplayEffect;
 
 UCLASS()
 class RFMCAPTURETHEFLAG_API ACTF_GameMode : public AGameMode, public IICTF_GameMode
@@ -59,6 +59,9 @@ public:
 
 	virtual void CTF_OnPlayerDeath_Implementation(AController* InController) override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	TSubclassOf<UGameplayEffect> FlagCarryEffect;
+
 
 protected:
 
@@ -97,5 +100,7 @@ private:
 	void CheckWinCondition();
 
 	void AlignFlagWithFloor();
+
+	void ApplyOrRemoveFlagEffect(bool Add);
 
 };

@@ -6,7 +6,6 @@
 #include "GameFramework/GameState.h"
 #include "Net/UnrealNetwork.h"
 #include "GameModes/CTF/States/CTF_PlayerState.h"
-#include "Net/UnrealNetwork.h"
 #include "CTF_GameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnTeamScored, int32, RedTeamScore, int32, BlueTeamScore, ETeam, TeamThatScored);

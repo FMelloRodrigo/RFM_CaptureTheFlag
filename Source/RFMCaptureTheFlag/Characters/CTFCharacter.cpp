@@ -127,7 +127,7 @@ void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Look);
 
-		// Bind Jump and Fire actions to Gameplay Abilities
+		// Bind Jump and Fire actions to Gameplay Abilities by tag
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACTFCharacter::InputAbilityPressed, FGameplayTag::RequestGameplayTag(FName("Ability.Jump")));
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACTFCharacter::InputAbilityReleased, FGameplayTag::RequestGameplayTag(FName("Ability.Jump")));
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ACTFCharacter::InputAbilityPressed, FGameplayTag::RequestGameplayTag(FName("Ability.Shoot")));
@@ -164,6 +164,35 @@ void ACTFCharacter::InputAbilityReleased(FGameplayTag InputTag)
 			{
 				AbilitySystemComponent->CancelAbilityHandle(Spec->Handle);
 			}
+		}
+	}
+}
+
+void ACTFCharacter::GiveDefaultAbilitiesAndEffects()
+{
+	if (HasAuthority() && AbilitySystemComponent)
+	{
+		for (TSubclassOf<UGameplayAbility>& Ability : DefaultAbilities)
+		{
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability, 1, INDEX_NONE, this);
+			AbilitySystemComponent->GiveAbility(AbilitySpec);
+		}
+
+		for (TSubclassOf<UGameplayEffect>& Effect : DefaultEffects)
+		{
+			FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
+			ContextHandle.AddSourceObject(this);
+			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(Effect, 1, ContextHandle);
+			if (SpecHandle.IsValid())
+			{
+				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+			}
+		}
+
+		if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = LHealthAtributeSet->GetBaseWalkSpeed();
+			GetCharacterMovement()->JumpZVelocity = LHealthAtributeSet->GetBaseJumpHeight();
 		}
 	}
 }
@@ -282,19 +311,6 @@ void ACTFCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ACTFCharacter::ToggleFireMode(const FInputActionValue& Value)
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->ToggleFireMode();
-	}
-}
-
-void ACTFCharacter::OnRep_EquippedWeapon()
-{
-	OnWeaponEquipped.Broadcast(EquippedWeapon);
-}
-
 void ACTFCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -317,10 +333,26 @@ void ACTFCharacter::UnPossessed()
 		EquippedWeapon->Destroy();
 	}
 }
-
+#pragma region GAS/Abilities
 UAbilitySystemComponent* ACTFCharacter::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
+}
+
+void ACTFCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+		if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = LHealthAtributeSet->GetBaseWalkSpeed();
+			GetCharacterMovement()->JumpZVelocity = LHealthAtributeSet->GetBaseJumpHeight();
+		}
+	}
 }
 
 float ACTFCharacter::GetHealth() const
@@ -350,6 +382,9 @@ float ACTFCharacter::GetJumpHeight() const
 	return 0.0f;
 }
 
+#pragma endregion GAS/Abilities
+
+#pragma region Weapons
 void ACTFCharacter::EquipWeapon(ACTF_WeaponsBase* WeaponToEquip)
 {
 	if (HasAuthority())
@@ -374,49 +409,9 @@ void ACTFCharacter::EquipWeapon(ACTF_WeaponsBase* WeaponToEquip)
 	}
 }
 
-void ACTFCharacter::OnRep_PlayerState()
+void ACTFCharacter::OnRep_EquippedWeapon()
 {
-	Super::OnRep_PlayerState();
-
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
-		if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
-		{
-			GetCharacterMovement()->MaxWalkSpeed = LHealthAtributeSet->GetBaseWalkSpeed();
-			GetCharacterMovement()->JumpZVelocity = LHealthAtributeSet->GetBaseJumpHeight();
-		}
-	}
-}
-
-void ACTFCharacter::GiveDefaultAbilitiesAndEffects()
-{
-	if (HasAuthority() && AbilitySystemComponent)
-	{
-		for (TSubclassOf<UGameplayAbility>& Ability : DefaultAbilities)
-		{
-			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability, 1, INDEX_NONE, this);
-			AbilitySystemComponent->GiveAbility(AbilitySpec);
-		}
-
-		for (TSubclassOf<UGameplayEffect>& Effect : DefaultEffects)
-		{
-			FGameplayEffectContextHandle ContextHandle = AbilitySystemComponent->MakeEffectContext();
-			ContextHandle.AddSourceObject(this);
-			FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(Effect, 1, ContextHandle);
-			if (SpecHandle.IsValid())
-			{
-				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-			}
-		}
-
-		if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
-		{
-			GetCharacterMovement()->MaxWalkSpeed = LHealthAtributeSet->GetBaseWalkSpeed();
-			GetCharacterMovement()->JumpZVelocity = LHealthAtributeSet->GetBaseJumpHeight();
-		}
-	}
+	OnWeaponEquipped.Broadcast(EquippedWeapon);
 }
 
 void ACTFCharacter::Server_EquipWeapon_Implementation(ACTF_WeaponsBase* WeaponToEquip)
@@ -424,7 +419,16 @@ void ACTFCharacter::Server_EquipWeapon_Implementation(ACTF_WeaponsBase* WeaponTo
 	EquipWeapon(WeaponToEquip);
 }
 
+void ACTFCharacter::ToggleFireMode(const FInputActionValue& Value)
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->ToggleFireMode();
+	}
+}
+#pragma endregion Weapons
 
+#pragma region Teams
 void ACTFCharacter::OnTeamsInit(ETeam InitTeam)
 {
 }
@@ -494,5 +498,6 @@ void ACTFCharacter::UpdateCharacterTeamColor(ETeam NewTeam)
 				
 			}
 }
+#pragma endregion Teams
 
 //GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
