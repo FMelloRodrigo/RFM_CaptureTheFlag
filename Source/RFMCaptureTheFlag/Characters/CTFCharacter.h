@@ -9,6 +9,7 @@
 #include "GameplayAbilitySpec.h"
 #include "InputActionValue.h" 
 #include "GameModes/CTF/Interfaces/ICTF_Teams.h"
+#include "GAS/AbilitiesEnums.h"
 #include "CTFCharacter.generated.h"
 
 class UAbilitySystemComponent;
