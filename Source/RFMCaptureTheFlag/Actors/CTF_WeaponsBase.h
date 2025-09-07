@@ -13,6 +13,9 @@ enum class EFireMode : uint8
 	FullAuto
 };
 
+class UNiagaraSystem;
+class USoundCue;
+
 // Delegate to broadcast ammo changes
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAmmoChangedDelegate, int32, CurrentAmmo, int32, MaxAmmo);
 
@@ -46,6 +49,13 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USkeletalMeshComponent* FPWeaponMesh;
+
+	//EFfects 
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	UNiagaraSystem* SpawnParticleSystem;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	USoundCue* SpawnSound;
 
 protected:
 	virtual void BeginPlay() override;
@@ -86,6 +96,11 @@ private:
 	void RegenerateAmmo();
 
 	void HandleFireOnServer(); 
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayHitEffects(const FVector& Location);
+
+	void PlayHitEffects(const FVector& Location);
 
 
 };

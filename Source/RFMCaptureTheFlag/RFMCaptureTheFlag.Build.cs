@@ -19,6 +19,7 @@ public class RFMCaptureTheFlag : ModuleRules
 			"GameplayStateTreeModule",
 			"UMG",
 			"Slate",
+            "Niagara",
             "GameplayAbilities", 
 			"GameplayTags", 
 			"GameplayTasks",

@@ -5,6 +5,8 @@
 #include "CTF_ProjectileBase.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ACTF_WeaponsBase::ACTF_WeaponsBase()
@@ -108,7 +110,7 @@ void ACTF_WeaponsBase::Fire()
 	if (HasAuthority())
 	{
 		
-		HandleFireOnServer();
+		HandleFireOnServer();		
 	}
 	else
 	{
@@ -157,6 +159,7 @@ void ACTF_WeaponsBase::HandleFireOnServer()
 			SpawnParams.Instigator = Cast<APawn>(GetOwner());
 
 			GetWorld()->SpawnActor<ACTF_ProjectileBase>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+			Multicast_PlayHitEffects(FPWeaponMesh->GetSocketLocation("Muzzle"));
 		}
 
 		// Local feedback for the server player (clients get OnRep)
@@ -166,6 +169,25 @@ void ACTF_WeaponsBase::HandleFireOnServer()
 	{
 		StopFire();
 		StartAmmoRegen();
+	}
+
+}
+
+void ACTF_WeaponsBase::Multicast_PlayHitEffects_Implementation(const FVector& Location)
+{
+	PlayHitEffects(Location);
+}
+
+void ACTF_WeaponsBase::PlayHitEffects(const FVector& Location)
+{
+	if (SpawnParticleSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAttached(SpawnParticleSystem, TPWeaponMesh, TEXT("Muzzle"), FVector(0, 0, 0), FRotator(0, 0, 0), EAttachLocation::SnapToTarget, true);
+	}
+
+	if (SpawnSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SpawnSound, Location, 0.5);
 	}
 
 }

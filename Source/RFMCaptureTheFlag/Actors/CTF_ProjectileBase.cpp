@@ -7,14 +7,17 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameplayEffect.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ACTF_ProjectileBase::ACTF_ProjectileBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
-	SetReplicateMovement(true);
+	//SetReplicateMovement(true);
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	RootComponent = SphereComponent;
@@ -61,11 +64,31 @@ void ACTF_ProjectileBase::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor
 				if (SpecHandle.IsValid())
 				{
 					TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+					Multicast_PlayHitEffects(Hit.Location);
 				}
 			}
 		}	
 		Destroy();
 	}
+}
+
+void ACTF_ProjectileBase::Multicast_PlayHitEffects_Implementation(const FVector& Location)
+{
+	PlayHitEffects(Location);
+}
+
+void ACTF_ProjectileBase::PlayHitEffects(const FVector& Location)
+{
+	if (HitParticleSystem)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), HitParticleSystem, Location, GetActorRotation());
+	}
+
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, Location, 0.5);
+	}
+
 }
 
 void ACTF_ProjectileBase::Tick(float DeltaTime)

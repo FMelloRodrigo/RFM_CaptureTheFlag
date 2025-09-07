@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "CTF_ProjectileBase.generated.h"
 
+class UNiagaraSystem;
+class USoundCue;
+
 UCLASS()
 class RFMCAPTURETHEFLAG_API ACTF_ProjectileBase : public AActor
 {
@@ -39,8 +42,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Options")
 	bool ProjShouldBounce = false;
 
+	//Effects
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	UNiagaraSystem* HitParticleSystem;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	USoundCue* HitSound;
+
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void Multicast_PlayHitEffects(const FVector& Location);
+
+private:
+	void PlayHitEffects(const FVector& Location);
+
 
 public:
 	virtual void Tick(float DeltaTime) override;
