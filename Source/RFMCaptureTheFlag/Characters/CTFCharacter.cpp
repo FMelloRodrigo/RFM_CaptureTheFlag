@@ -14,7 +14,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GAS/Attributes/CTF_Attributes.h"
-#include "GameplayTagContainer.h"
 
 #include "Actors/CTF_WeaponsBase.h"
 
@@ -101,7 +100,14 @@ void ACTFCharacter::BeginPlay()
 		Attributes->OnCharacterDeath.AddDynamic(this, &ACTFCharacter::Die);
 		
 	}
-	
+		
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->OnGameplayEffectAppliedDelegateToSelf.AddUObject( this, &ACTFCharacter::GEAppliedCallback);
+		FOnGivenActiveGameplayEffectRemoved* GameplayEffectRemovedDelegate = &AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate();
+		GameplayEffectRemovedDelegate->AddUObject(this, &ACTFCharacter::GERemovedCallback);
+	}
+
 }
 
 void ACTFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -380,6 +386,23 @@ float ACTFCharacter::GetJumpHeight() const
 		return HealthAttributeSet->GetBaseJumpHeight();
 	}
 	return 0.0f;
+}
+
+void ACTFCharacter::GEAppliedCallback_Implementation(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle)
+{
+	FGameplayTagContainer GrantedTags;
+	SpecApplied.GetAllAssetTags(GrantedTags);
+
+	GEApplied.Broadcast(GrantedTags);
+}
+
+void ACTFCharacter::GERemovedCallback_Implementation(const FActiveGameplayEffect& Effect)
+{
+
+	const FGameplayEffectSpec& Spec = Effect.Spec;
+	const UGameplayEffect* GameplayEffect = Spec.Def;
+	const FGameplayTagContainer& AssetTags = GameplayEffect->InheritableGameplayEffectTags.CombinedTags;
+	GERemoved.Broadcast(AssetTags);
 }
 
 #pragma endregion GAS/Abilities

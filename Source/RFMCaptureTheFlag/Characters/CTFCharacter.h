@@ -8,6 +8,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameplayAbilitySpec.h"
 #include "InputActionValue.h" 
+#include "GameplayTagContainer.h"
 #include "GameModes/CTF/Interfaces/ICTF_Teams.h"
 #include "GAS/AbilitiesEnums.h"
 #include "CTFCharacter.generated.h"
@@ -21,6 +22,8 @@ class UInputAction;
 
 // Delegate for when the character equips a new weapon
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedDelegate, ACTF_WeaponsBase*, NewWeapon);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayEffectAppliedDelegate, FGameplayTagContainer, EffectTags);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayEffectRemovedDelegate, FGameplayTagContainer, EffectTags);
 
 
 
@@ -67,6 +70,12 @@ public:
 	
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnWeaponEquippedDelegate OnWeaponEquipped;
+
+	UPROPERTY(BlueprintAssignable, Category = "Effects")
+	FOnGameplayEffectAppliedDelegate GEApplied;
+
+	UPROPERTY(BlueprintAssignable, Category = "Effects")
+	FOnGameplayEffectRemovedDelegate GERemoved;
 
 
 #pragma region TeamColors
@@ -145,6 +154,12 @@ protected:
 
 	void GiveDefaultAbilitiesAndEffects();
 
+	UFUNCTION(Client, Unreliable)
+	void GEAppliedCallback(UAbilitySystemComponent* Target, const FGameplayEffectSpec& SpecApplied, FActiveGameplayEffectHandle ActiveHandle);
+
+	UFUNCTION(Client, Unreliable)
+	void GERemovedCallback(const FActiveGameplayEffect& Effect);
+
 // Weapons 	
 	UPROPERTY(ReplicatedUsing = OnRep_EquippedWeapon, VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	ACTF_WeaponsBase* EquippedWeapon;
@@ -155,6 +170,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
 	TSubclassOf<ACTF_WeaponsBase> DefaultWeaponClass;
+
+
 
 #pragma region InputActions
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Input")
@@ -185,5 +202,7 @@ private:
 
 	void InputAbilityPressed(FGameplayTag InputTag);
 	void InputAbilityReleased(FGameplayTag InputTag);
+
+
 
 };

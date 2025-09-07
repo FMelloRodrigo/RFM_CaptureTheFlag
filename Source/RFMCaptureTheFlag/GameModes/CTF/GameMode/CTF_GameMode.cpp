@@ -137,7 +137,7 @@ void ACTF_GameMode::OnFlagPickedUp(APawn* PlayerPawn, ACTF_Flag* Flag)
 			FlagActor->AttachToComponent(PCharacter->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("FlagSocket"));
 			FlagActor->SetOwner(PlayerPawn);
 			FlagPlayer = Cast<APlayerController>(PlayerPawn->GetController());
-			ApplyOrRemoveFlagEffect(true);
+			ApplyOrRemoveEffectFromPlayer(true, FlagPlayer, FlagCarryEffect);
 
 		}
 		
@@ -150,7 +150,7 @@ void ACTF_GameMode::OnFlagDropped()
 	FlagActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	FlagActor->OnFlagDropped();
 	AlignFlagWithFloor();
-	ApplyOrRemoveFlagEffect(false);
+	ApplyOrRemoveEffectFromPlayer(false, FlagPlayer, FlagCarryEffect);
 	FlagPlayer = nullptr;
 }
 
@@ -316,10 +316,10 @@ void ACTF_GameMode::AlignFlagWithFloor()
 
 #pragma region Effects
 
-void ACTF_GameMode::ApplyOrRemoveFlagEffect(bool Add)
+void ACTF_GameMode::ApplyOrRemoveEffectFromPlayer(bool Add, AController* Controller, TSubclassOf<UGameplayEffect> GEClass)
 {
 	
-	if (APlayerController* PC = Cast<APlayerController>(FlagPlayer))
+	if (APlayerController* PC = Cast<APlayerController>(Controller))
 	{
 		if (APawn* LPawn = PC->GetPawn())
 		{
@@ -328,8 +328,8 @@ void ACTF_GameMode::ApplyOrRemoveFlagEffect(bool Add)
 				if (Add)
 				{
 					FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-					ContextHandle.AddSourceObject(FlagActor);
-					FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(FlagCarryEffect, 1, ContextHandle);
+					ContextHandle.AddSourceObject(this);
+					FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(GEClass, 1, ContextHandle);
 					if (SpecHandle.IsValid())
 					{
 						ASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), ASC);

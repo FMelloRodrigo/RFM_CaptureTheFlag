@@ -101,6 +101,6 @@ private:
 
 	void AlignFlagWithFloor();
 
-	void ApplyOrRemoveFlagEffect(bool Add);
+	void ApplyOrRemoveEffectFromPlayer(bool Add, AController* Controller, TSubclassOf<UGameplayEffect> GEClass);
 
 };
