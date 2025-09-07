@@ -48,6 +48,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	float GetHealth() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float GetWalkSpeed() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	float GetJumpHeight() const;
+
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 // Weapons 

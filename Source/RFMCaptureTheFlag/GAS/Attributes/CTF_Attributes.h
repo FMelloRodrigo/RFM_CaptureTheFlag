@@ -31,8 +31,10 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// Override to clamp values and broadcast events
+	
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
@@ -42,7 +44,16 @@ public:
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UCTF_Attributes, MaxHealth);
 
-	// Delegate that will be broadcasted when health changes
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_BaseWalkSpeed)
+	FGameplayAttributeData BaseWalkSpeed;
+	ATTRIBUTE_ACCESSORS(UCTF_Attributes, BaseWalkSpeed);
+
+	UPROPERTY(BlueprintReadOnly, Category = "Attributes", ReplicatedUsing = OnRep_BaseJumpHeight)
+	FGameplayAttributeData BaseJumpHeight;
+	ATTRIBUTE_ACCESSORS(UCTF_Attributes, BaseJumpHeight);
+
+
 	UPROPERTY(BlueprintAssignable, Category = "Attributes")
 	FOnHealthChangedDelegate OnHealthChanged;
 
@@ -55,5 +66,14 @@ protected:
 
 	UFUNCTION()
 	virtual void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth);
+
+	UFUNCTION()
+	virtual void OnRep_BaseWalkSpeed(const FGameplayAttributeData& OldBaseWalkSpeed);
+
+	UFUNCTION()
+	virtual void OnRep_BaseJumpHeight(const FGameplayAttributeData& OldBaseJumpHeight);
+
+	
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	
 };

@@ -103,22 +103,39 @@ void ACTFCharacter::BeginPlay()
 	
 }
 
-# pragma region Death Events
-
-void ACTFCharacter::OnRep_PlayerState()
+void ACTFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::OnRep_PlayerState();
-
-	// On the client, initialize the ASC from the replicated PlayerState
-	
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->InitAbilityActorInfo(this, this);
-	}
-	
-
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ACTFCharacter, EquippedWeapon);
+	DOREPLIFETIME(ACTFCharacter, bIsDead);
+}
+void ACTFCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
 
+void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Move);
+
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Look);
+
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ACTFCharacter::StartFire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ACTFCharacter::StopFire);
+
+		EnhancedInputComponent->BindAction(ToggleFireModeAction, ETriggerEvent::Started, this, &ACTFCharacter::ToggleFireMode);
+	}
+}
+
+# pragma region Death Events
 
 void ACTFCharacter::Die()
 {
@@ -209,35 +226,6 @@ void ACTFCharacter::PawnClientRestart()
 
 # pragma endregion Death Events
 
-
-
-void ACTFCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);	
-}
-
-void ACTFCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Move);
-
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ACTFCharacter::Look);
-
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ACTFCharacter::StartFire);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ACTFCharacter::StopFire);
-
-		EnhancedInputComponent->BindAction(ToggleFireModeAction, ETriggerEvent::Started, this, &ACTFCharacter::ToggleFireMode);
-	}
-}
-
-
 void ACTFCharacter::Move(const FInputActionValue& Value)
 {
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -293,13 +281,6 @@ void ACTFCharacter::OnRep_EquippedWeapon()
 	OnWeaponEquipped.Broadcast(EquippedWeapon);
 }
 
-void ACTFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ACTFCharacter, EquippedWeapon);
-	DOREPLIFETIME(ACTFCharacter, bIsDead);
-}
-
 void ACTFCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -337,6 +318,24 @@ float ACTFCharacter::GetHealth() const
 	return 0.0f;
 }
 
+float ACTFCharacter::GetWalkSpeed() const
+{
+	if (HealthAttributeSet)
+	{
+		return HealthAttributeSet->GetBaseWalkSpeed();
+	}
+	return 0.0f;
+}
+
+float ACTFCharacter::GetJumpHeight() const
+{
+	if (HealthAttributeSet)
+	{
+		return HealthAttributeSet->GetBaseJumpHeight();
+	}
+	return 0.0f;
+}
+
 void ACTFCharacter::EquipWeapon(ACTF_WeaponsBase* WeaponToEquip)
 {
 	if (HasAuthority())
@@ -361,6 +360,22 @@ void ACTFCharacter::EquipWeapon(ACTF_WeaponsBase* WeaponToEquip)
 	}
 }
 
+void ACTFCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+		if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = LHealthAtributeSet->GetBaseWalkSpeed();
+			GetCharacterMovement()->JumpZVelocity = LHealthAtributeSet->GetBaseJumpHeight();
+		}
+	}
+}
+
 void ACTFCharacter::GiveDefaultAbilitiesAndEffects()
 {
 	if (HasAuthority() && AbilitySystemComponent)
@@ -379,6 +394,12 @@ void ACTFCharacter::GiveDefaultAbilitiesAndEffects()
 			{
 				AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
+		}
+
+		if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = LHealthAtributeSet->GetBaseWalkSpeed();
+			GetCharacterMovement()->JumpZVelocity = LHealthAtributeSet->GetBaseJumpHeight();
 		}
 	}
 }
