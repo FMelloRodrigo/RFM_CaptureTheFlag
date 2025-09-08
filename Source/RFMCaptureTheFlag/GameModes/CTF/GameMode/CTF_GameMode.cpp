@@ -355,11 +355,8 @@ void ACTF_GameMode::DispatchScoreEffect(ETeam ScoringTeam)
 			ApplyOrRemoveEffectFromPlayer(true, LoopNonScoringStates->GetOwningController(), ChosenNonScoringGE);
 		}
 	}
-
-
-
 }
-#pragma region Effects
+#pragma region GE Effects
 
 void ACTF_GameMode::ApplyOrRemoveEffectFromPlayer(bool Add, AController* Controller, TSubclassOf<UGameplayEffect> GEClass)
 {
@@ -395,4 +392,4 @@ void ACTF_GameMode::ApplyOrRemoveEffectFromPlayer(bool Add, AController* Control
 
 }
 
-#pragma endregion Effects
+#pragma endregion GE Effects
