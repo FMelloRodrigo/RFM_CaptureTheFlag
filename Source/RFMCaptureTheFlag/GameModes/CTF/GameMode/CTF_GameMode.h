@@ -59,8 +59,14 @@ public:
 
 	virtual void CTF_OnPlayerDeath_Implementation(AController* InController) override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Abilities")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Match Effects")
 	TSubclassOf<UGameplayEffect> FlagCarryEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Match Effects")
+	TArray<TSubclassOf<UGameplayEffect>> ScoringGameplayEffects;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Match Effects")
+	TArray<TSubclassOf<UGameplayEffect>> NonScoringGameplayEffects;
 
 
 protected:
@@ -97,10 +103,12 @@ private:
 
 	TArray<AController*> RespawningPlayers;
 
-	void CheckWinCondition();
+	void CheckWinCondition(ETeam ScoringTeam);
 
 	void AlignFlagWithFloor();
 
 	void ApplyOrRemoveEffectFromPlayer(bool Add, AController* Controller, TSubclassOf<UGameplayEffect> GEClass);
+
+	void DispatchScoreEffect(ETeam ScoringTeam);
 
 };

@@ -147,10 +147,10 @@ void ACTF_GameMode::OnFlagPickedUp(APawn* PlayerPawn, ACTF_Flag* Flag)
 
 void ACTF_GameMode::OnFlagDropped()
 {
+	ApplyOrRemoveEffectFromPlayer(false, FlagPlayer, FlagCarryEffect);
 	FlagActor->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
 	FlagActor->OnFlagDropped();
-	AlignFlagWithFloor();
-	ApplyOrRemoveEffectFromPlayer(false, FlagPlayer, FlagCarryEffect);
+	AlignFlagWithFloor();	
 	FlagPlayer = nullptr;
 }
 
@@ -167,7 +167,7 @@ void ACTF_GameMode::OnScore(APlayerController* Scorer)
 			PGameState->AddScoreToTeam(ScorerPS->GetTeam(), 1);
 			OnFlagDropped();
 			ResetFlag();
-			CheckWinCondition();		
+			CheckWinCondition(ScorerPS->GetTeam());
 		}
 	}
 }
@@ -207,7 +207,7 @@ void ACTF_GameMode::RespawnPlayer(AController* CtfController)
 void ACTF_GameMode::PlayerDied(AController* CtfController)
 {
 	if (CtfController )
-	{		
+	{				
 		RespawningPlayers.AddUnique(CtfController);
 		
 		if (FlagPlayer)
@@ -247,7 +247,7 @@ void ACTF_GameMode::OnRep_FlagActor()
 	// Can be used for VFX on clients when the Flag Actor Changes
 }
 
-void ACTF_GameMode::CheckWinCondition()
+void ACTF_GameMode::CheckWinCondition(ETeam ScoringTeam)
 {
 	ACTF_GameState* PGameState = GetGameState<ACTF_GameState>();
 	ETeam WinnerTeam;
@@ -275,7 +275,11 @@ void ACTF_GameMode::CheckWinCondition()
 		FTimerHandle RespawnTimerHandle;
 		GetWorldTimerManager().SetTimer(RespawnTimerHandle,this,&ACTF_GameMode::ResetThisGame,3.f,false,1.0f);
 			
-	}	
+	}
+	else
+	{
+		DispatchScoreEffect(ScoringTeam);
+	}
 }
 
 void ACTF_GameMode::DisablePlayerInput_Implementation()
@@ -306,14 +310,55 @@ void ACTF_GameMode::AlignFlagWithFloor()
 	bool bHit = GetWorld()->SweepSingleByChannel(Hit,Start,End,FQuat::Identity,ECC_WorldStatic,Sphere);
 	if (bHit)
 	{
-		const FVector SetLoc = Hit.ImpactPoint;			 
+		//Small down offset, since the flag mesh have some elevation
+		const FVector SetLoc = Hit.ImpactPoint + FVector(0, 0, -100);
 		const FRotator SetRot = FRotator( 0, 0, 0 );
 		FlagActor->SetActorLocationAndRotation(SetLoc, SetRot);
 	}
 
 
 }
+void ACTF_GameMode::DispatchScoreEffect(ETeam ScoringTeam)
+{
+	const ACTF_GameState* PGameState = GetGameState<ACTF_GameState>();
+	TArray<ACTF_PlayerState*> ScoringPlayers;
+	TArray<ACTF_PlayerState*> NonScoringPlayers;
+	
+	if (ScoringTeam == ETeam::RedTeam)
+	{
+		ScoringPlayers = PGameState->RedTeamPlayers;
+		NonScoringPlayers = PGameState->BlueTeamPlayers;
+	}
+	else if(ScoringTeam == ETeam::BlueTeam)
+	{
+		ScoringPlayers = PGameState->BlueTeamPlayers;
+		NonScoringPlayers = PGameState->RedTeamPlayers;
+	}
 
+	const int32 RandomIndex1 = FMath::RandRange(0, ScoringGameplayEffects.Num() - 1);
+	TSubclassOf <UGameplayEffect> ChosenScoringGE = ScoringGameplayEffects[RandomIndex1];
+	const int32 RandomIndex2 = FMath::RandRange(0, NonScoringGameplayEffects.Num() - 1);
+	TSubclassOf <UGameplayEffect> ChosenNonScoringGE = NonScoringGameplayEffects[RandomIndex2];
+	
+	for (auto LoopScoringStates : ScoringPlayers)
+	{
+		if (ChosenScoringGE)
+		{
+			ApplyOrRemoveEffectFromPlayer(true, LoopScoringStates->GetOwningController(), ChosenScoringGE);
+		}
+
+	}
+	for (auto LoopNonScoringStates : NonScoringPlayers)
+	{
+		if (ChosenNonScoringGE)
+		{
+			ApplyOrRemoveEffectFromPlayer(true, LoopNonScoringStates->GetOwningController(), ChosenNonScoringGE);
+		}
+	}
+
+
+
+}
 #pragma region Effects
 
 void ACTF_GameMode::ApplyOrRemoveEffectFromPlayer(bool Add, AController* Controller, TSubclassOf<UGameplayEffect> GEClass)
@@ -332,15 +377,13 @@ void ACTF_GameMode::ApplyOrRemoveEffectFromPlayer(bool Add, AController* Control
 					FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(GEClass, 1, ContextHandle);
 					if (SpecHandle.IsValid())
 					{
-						ASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), ASC);
-						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("EFFECT APPLIED"));
+						ASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), ASC);			
 					}
 
 				}
 				else
 				{
 					ASC->RemoveActiveGameplayEffectBySourceEffect(FlagCarryEffect, ASC);
-					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("EFFECT REMOVED"));
 
 				}
 				

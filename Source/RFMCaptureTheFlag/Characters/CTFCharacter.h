@@ -24,6 +24,7 @@ class UInputAction;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponEquippedDelegate, ACTF_WeaponsBase*, NewWeapon);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayEffectAppliedDelegate, FGameplayTagContainer, EffectTags);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnGameplayEffectRemovedDelegate, FGameplayTagContainer, EffectTags);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCharacterDied);
 
 
 
@@ -76,6 +77,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Effects")
 	FOnGameplayEffectRemovedDelegate GERemoved;
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCharacterDied CharacterDied;
 
 
 #pragma region TeamColors
@@ -203,6 +207,6 @@ private:
 	void InputAbilityPressed(FGameplayTag InputTag);
 	void InputAbilityReleased(FGameplayTag InputTag);
 
-
+	void BindGameplayEfffectCallbacks();
 
 };

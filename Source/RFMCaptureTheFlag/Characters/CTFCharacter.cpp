@@ -100,14 +100,6 @@ void ACTFCharacter::BeginPlay()
 		Attributes->OnCharacterDeath.AddDynamic(this, &ACTFCharacter::Die);
 		
 	}
-		
-	if (AbilitySystemComponent)
-	{
-		AbilitySystemComponent->OnGameplayEffectAppliedDelegateToSelf.AddUObject( this, &ACTFCharacter::GEAppliedCallback);
-		FOnGivenActiveGameplayEffectRemoved* GameplayEffectRemovedDelegate = &AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate();
-		GameplayEffectRemovedDelegate->AddUObject(this, &ACTFCharacter::GERemovedCallback);
-	}
-
 }
 
 void ACTFCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -200,14 +192,30 @@ void ACTFCharacter::GiveDefaultAbilitiesAndEffects()
 			GetCharacterMovement()->MaxWalkSpeed = LHealthAtributeSet->GetBaseWalkSpeed();
 			GetCharacterMovement()->JumpZVelocity = LHealthAtributeSet->GetBaseJumpHeight();
 		}
+		BindGameplayEfffectCallbacks();
+		
 	}
+
+}
+
+void ACTFCharacter::BindGameplayEfffectCallbacks()
+{
+	//Remove old bindings
+	AbilitySystemComponent->OnGameplayEffectAppliedDelegateToSelf.RemoveAll(this);
+	AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate().RemoveAll(this);
+
+	// GEs applied callback
+	AbilitySystemComponent->OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &ACTFCharacter::GEAppliedCallback);
+	// GEs Removed callback
+	FOnGivenActiveGameplayEffectRemoved* GameplayEffectRemovedDelegate = &AbilitySystemComponent->OnAnyGameplayEffectRemovedDelegate();
+	GameplayEffectRemovedDelegate->AddUObject(this, &ACTFCharacter::GERemovedCallback);
 }
 
 # pragma region Death Events
 
 void ACTFCharacter::Die()
 {
-	
+
 	if (bIsDead)
 	{
 		return;
@@ -252,7 +260,7 @@ void ACTFCharacter::OnRep_IsDead()
 		FirstPersonMesh->SetSimulatePhysics(true);
 
 		GetCharacterMovement()->DisableMovement();
-
+		CharacterDied.Broadcast();
 		if (AbilitySystemComponent)
 		{
 			AbilitySystemComponent->CancelAllAbilities();
@@ -333,7 +341,6 @@ void ACTFCharacter::PossessedBy(AController* NewController)
 void ACTFCharacter::UnPossessed()
 {
 	Super::UnPossessed();
-
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->Destroy();
@@ -351,7 +358,9 @@ void ACTFCharacter::OnRep_PlayerState()
 
 	if (AbilitySystemComponent)
 	{
+		
 		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+		BindGameplayEfffectCallbacks();
 
 		if (const UCTF_Attributes* LHealthAtributeSet = AbilitySystemComponent->GetSet<UCTF_Attributes>())
 		{
@@ -392,7 +401,6 @@ void ACTFCharacter::GEAppliedCallback_Implementation(UAbilitySystemComponent* Ta
 {
 	FGameplayTagContainer GrantedTags;
 	SpecApplied.GetAllAssetTags(GrantedTags);
-
 	GEApplied.Broadcast(GrantedTags);
 }
 
@@ -523,4 +531,3 @@ void ACTFCharacter::UpdateCharacterTeamColor(ETeam NewTeam)
 }
 #pragma endregion Teams
 
-//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, FString::Printf(TEXT("Team Color Updated: %s"), *UEnum::GetValueAsString(NewTeam)));
